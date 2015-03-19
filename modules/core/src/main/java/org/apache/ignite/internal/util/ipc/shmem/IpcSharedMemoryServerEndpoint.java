@@ -671,7 +671,7 @@ public class IpcSharedMemoryServerEndpoint implements IpcServerEndpoint {
                         if (log.isDebugEnabled())
                             log.debug("Possibly stale token file: " + f0);
 
-                        U.dumpStack(">>> FREE <<<");
+                        U.dumpStack(">>> FREE 3 <<<");
 
                         IpcSharedMemoryUtils.freeSystemResources(f0.getAbsolutePath(), size);
 

@@ -296,6 +296,8 @@ public class IpcSharedMemoryClientEndpoint implements IpcEndpoint {
 
         File tokFile = new File(space.tokenFileName());
 
+        U.dumpStack(">>> FREE 2 <<<");
+
         // Space is not usable at this point and all local threads
         // are guaranteed to leave its methods (other party is not alive).
         // So, we can cleanup resources without additional synchronization.

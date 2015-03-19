@@ -299,7 +299,7 @@ public class IpcSharedMemorySpace implements Closeable {
         lock.writeLock().lock();
 
         try {
-            U.dumpStack(">>> FREE <<<");
+            U.dumpStack(">>> FREE 1 <<<");
 
             IpcSharedMemoryUtils.freeSystemResources(tokFileName, shmemPtr, force);
         }

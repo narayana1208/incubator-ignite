@@ -18,6 +18,7 @@
 package org.apache.ignite.streaming;
 
 import org.apache.ignite.*;
+import org.apache.ignite.internal.util.future.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
 
@@ -25,18 +26,26 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class IgniteSocketStreamer<K, V> {
-    /** Target streamer. */
-    private final IgniteDataStreamer<K, V> streamer;
-
-    /** Stream to entries iterator transformer. */
-    private final IgniteClosure<InputStream, Iterator<Map.Entry<K, V>>> f;
-
+/**
+ * Data streamer is responsible for streaming data from socket into cache. Every object obtained from socket converts
+ * to key-value pair using converter.
+ *
+ * @param <E> Type of element obtained from socket.
+ * @param <K> Cache entry key type.
+ * @param <V> Cache entry value type.
+ */
+public class IgniteSocketStreamer<E, K, V> {
     /** Host. */
     private final String host;
 
     /** Port. */
     private final int port;
+
+    /** Target streamer. */
+    protected final IgniteDataStreamer<K, V> streamer;
+
+    /** Stream to entries iterator transformer. */
+    protected final IgniteClosure<E, Map.Entry<K, V>> converter;
 
     /**
      * Constructs socket streamer.
@@ -44,90 +53,57 @@ public class IgniteSocketStreamer<K, V> {
      * @param host Host.
      * @param port Port.
      * @param streamer Streamer.
-     * @param f Stream to entries iterator transformer.
+     * @param converter Stream to entry converter.
      */
     public IgniteSocketStreamer(
-            String host,
-            int port,
-            IgniteDataStreamer<K, V> streamer,
-            IgniteClosure<InputStream, Iterator<Map.Entry<K, V>>> f
-            ) {
-
+        String host,
+        int port,
+        IgniteDataStreamer<K, V> streamer,
+        IgniteClosure<E, Map.Entry<K, V>> converter
+    ) {
         A.notNull(streamer, "streamer is null");
         A.notNull(host, "host is null");
-        A.notNull(f, "f is null");
+        A.notNull(converter, "converter is null");
 
         this.host = host;
         this.port = port;
         this.streamer = streamer;
-        this.f = f;
+        this.converter = converter;
     }
 
     /**
      * Performs loading of data stream.
      */
     public void loadData() {
-        try (Socket sock = new Socket(host, port);
-             InputStream is = sock.getInputStream()) {
-
-            for (Iterator<Map.Entry<K, V>> it = f.apply(is); it.hasNext();)
-                streamer.addData(it.next());
+        try (Socket sock = new Socket(host, port)) {
+            loadData(sock);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             throw new IgniteException(e);
         }
     }
 
     /**
-     * Base iterator implementation with next element pre-fetching.
+     * Reads data from socket and loads them into target data stream.
      *
-     * @param <E> Element type.
+     * @param sock Socket.
      */
-    abstract static class NextIterator<E> implements Iterator<E>, AutoCloseable {
-        /** Closed. */
-        private boolean closed;
-        /** Next value. */
-        private E next;
-        /** Next value is available. */
-        private boolean gotNext;
+    @SuppressWarnings("unchecked")
+    protected void loadData(Socket sock) throws IOException {
+        try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(sock.getInputStream()))) {
+            while (true) {
+                try {
+                    E element = (E) ois.readObject();
 
-        /** {@inheritDoc} */
-        @Override public boolean hasNext() {
-            if (!closed && !gotNext) {
-                next = getNext();
-
-                gotNext = true;
+                    streamer.addData(converter.apply(element));
+                }
+                catch (EOFException e) {
+                    break;
+                }
+                catch (IOException | ClassNotFoundException e) {
+                    throw new IgniteException(e);
+                }
             }
-
-            return !closed;
-        }
-
-        /** {@inheritDoc} */
-        @Override public E next() {
-            if (!hasNext())
-                throw new NoSuchElementException("End of stream");
-
-            gotNext = false;
-
-            return next;
-        }
-
-        /** {@inheritDoc} */
-        @Override public void remove() {
-            throw new UnsupportedOperationException();
-        }
-
-        /**
-         * Gets next value from backed iterator. If next element isn't available the derived class should
-         * invoke {@link #close()} method and return any value.
-         *
-         * @return Next element or closes the iterator.
-         */
-        protected abstract E getNext();
-
-        /** {@inheritDoc} */
-        @Override public void close() {
-            closed = true;
         }
     }
 }

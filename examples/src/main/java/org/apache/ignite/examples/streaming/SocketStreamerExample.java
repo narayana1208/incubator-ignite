@@ -26,6 +26,7 @@ import org.apache.ignite.streaming.*;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 /**
  * Demonstrates how cache can be populated with data utilizing {@link IgniteSocketStreamer} API.
@@ -36,7 +37,7 @@ import java.net.*;
  * Alternatively you can run {@link CacheNodeStartup} in another JVM which will
  * start node with {@code examples/config/example-cache.xml} configuration.
  */
-public class SocketObjectStreamerExample {
+public class SocketStreamerExample {
     /** Cache name. */
     private static final String CACHE_NAME = "partitioned";
 
@@ -75,27 +76,25 @@ public class SocketObjectStreamerExample {
 
             long start = System.currentTimeMillis();
 
-            try (IgniteDataStreamer<Integer, IgniteBiTuple<Integer, String>> stmr = ignite.dataStreamer(CACHE_NAME)) {
+            try (IgniteDataStreamer<Integer, String> stmr = ignite.dataStreamer(CACHE_NAME)) {
                 // Configure loader.
                 stmr.perNodeBufferSize(1024);
                 stmr.perNodeParallelOperations(8);
 
-                IgniteClosure<IgniteBiTuple<Integer, String>, Integer> keyClos =
-                        new IgniteClosure<IgniteBiTuple<Integer, String>, Integer>() {
-                    @Override public Integer apply(IgniteBiTuple<Integer, String> input) {
-                        return input.getKey();
-                    }
-                };
+                IgniteClosure<IgniteBiTuple<Integer, String>, Map.Entry<Integer, String>> converter =
+                    new IgniteClosure<IgniteBiTuple<Integer, String>, Map.Entry<Integer, String>>() {
+                        @Override public Map.Entry<Integer, String> apply(IgniteBiTuple<Integer, String> input) {
+                            return new IgniteBiTuple<>(input.getKey(), input.getValue());
+                        }
+                    };
 
-                IgniteSocketStreamer<Integer, IgniteBiTuple<Integer, String>> sockStmr =
-                        new IgniteSocketStreamer<>(HOST, PORT, stmr, new ObjectStreamConverter<>(keyClos));
+                IgniteSocketStreamer<IgniteBiTuple<Integer, String>, Integer, String> sockStmr =
+                    new IgniteSocketStreamer<>(HOST, PORT, stmr, converter);
 
                 sockStmr.loadData();
             }
 
             long end = System.currentTimeMillis();
-
-            System.out.println(">>> Cache Size " + ignite.jcache(CACHE_NAME).size(CachePeekMode.PRIMARY));
 
             System.out.println(">>> Loaded " + ENTRY_COUNT + " keys in " + (end - start) + "ms.");
         }
@@ -113,7 +112,7 @@ public class SocketObjectStreamerExample {
                 try (ServerSocket srvSock = new ServerSocket(PORT);
                      Socket sock = srvSock.accept();
                      ObjectOutputStream oos =
-                             new ObjectOutputStream(new BufferedOutputStream(sock.getOutputStream()))) {
+                         new ObjectOutputStream(new BufferedOutputStream(sock.getOutputStream()))) {
 
                     for (int i = 0; i < ENTRY_COUNT; i++)
                         oos.writeObject(new IgniteBiTuple<>(i, Integer.toString(i)));

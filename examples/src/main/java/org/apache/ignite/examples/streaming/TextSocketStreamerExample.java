@@ -21,13 +21,15 @@ import org.apache.ignite.*;
 import org.apache.ignite.cache.*;
 import org.apache.ignite.examples.*;
 import org.apache.ignite.examples.datagrid.*;
+import org.apache.ignite.lang.*;
 import org.apache.ignite.streaming.*;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 /**
- * Demonstrates how cache can be populated with data utilizing {@link IgniteSocketStreamer} API.
+ * Demonstrates how cache can be populated with data utilizing {@link IgniteTextSocketStreamer} API.
  * <p>
  * Remote nodes should always be started with special configuration file which
  * enables P2P class loading: {@code 'ignite.{sh|bat} examples/config/example-cache.xml'}.
@@ -35,7 +37,7 @@ import java.net.*;
  * Alternatively you can run {@link CacheNodeStartup} in another JVM which will
  * start node with {@code examples/config/example-cache.xml} configuration.
  */
-public class SocketTextStreamerExample {
+public class TextSocketStreamerExample {
     /** Cache name. */
     private static final String CACHE_NAME = "partitioned";
 
@@ -74,13 +76,21 @@ public class SocketTextStreamerExample {
 
             long start = System.currentTimeMillis();
 
-            try (IgniteDataStreamer<String, String> stmr = ignite.dataStreamer(CACHE_NAME)) {
+            try (IgniteDataStreamer<Integer, String> stmr = ignite.dataStreamer(CACHE_NAME)) {
                 // Configure loader.
                 stmr.perNodeBufferSize(1024);
                 stmr.perNodeParallelOperations(8);
 
-                IgniteSocketStreamer<String, String> sockStmr =
-                        new IgniteSocketStreamer<>(HOST, PORT, stmr, new TextStreamConverter());
+                IgniteClosure<String, Map.Entry<Integer, String>> converter =
+                    new IgniteClosure<String, Map.Entry<Integer, String>>() {
+                        @Override public Map.Entry<Integer, String> apply(String input) {
+                            String[] pair = input.split("=");
+                            return new IgniteBiTuple<>(Integer.parseInt(pair[0]), pair[1]);
+                        }
+                };
+
+                IgniteTextSocketStreamer<Integer, String> sockStmr =
+                    new IgniteTextSocketStreamer<>(HOST, PORT, stmr, converter);
 
                 sockStmr.loadData();
             }
@@ -105,11 +115,13 @@ public class SocketTextStreamerExample {
                 try (ServerSocket srvSock = new ServerSocket(PORT);
                      Socket sock = srvSock.accept();
                      BufferedWriter writer =
-                             new BufferedWriter(new OutputStreamWriter(sock.getOutputStream(), "UTF-8"))) {
+                         new BufferedWriter(new OutputStreamWriter(sock.getOutputStream(), "UTF-8"))) {
 
                     for (int i = 0; i < ENTRY_COUNT; i++) {
                         String num = Integer.toString(i);
+
                         writer.write(num + '=' + num);
+
                         writer.newLine();
                     }
                 }

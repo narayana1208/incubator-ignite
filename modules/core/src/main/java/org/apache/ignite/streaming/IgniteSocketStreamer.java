@@ -18,9 +18,13 @@
 package org.apache.ignite.streaming;
 
 import org.apache.ignite.*;
+import org.apache.ignite.internal.*;
 import org.apache.ignite.internal.util.future.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
+import org.apache.ignite.internal.util.worker.*;
 import org.apache.ignite.lang.*;
+import org.apache.ignite.logger.*;
+import org.apache.ignite.thread.*;
 
 import java.io.*;
 import java.net.*;
@@ -35,11 +39,16 @@ import java.util.*;
  * @param <V> Cache entry value type.
  */
 public class IgniteSocketStreamer<E, K, V> {
+    /** Logger. */
+    private static final IgniteLogger log = new NullLogger();
+
     /** Host. */
     private final String host;
 
     /** Port. */
     private final int port;
+
+    private volatile GridWorker worker;
 
     /** Target streamer. */
     protected final IgniteDataStreamer<K, V> streamer;
@@ -83,6 +92,28 @@ public class IgniteSocketStreamer<E, K, V> {
         }
     }
 
+    public IgniteFuture<Void> start() {
+
+        final GridFutureAdapter<Void> fut = new GridFutureAdapter<>();
+
+        ReceiverWorker worker = new ReceiverWorker(
+            "GRID???", "Socket streamer receiver", log, new GridWorkerListenerAdapter() {
+            @Override public void onStopped(GridWorker w) {
+                fut.onDone();
+            }
+        });
+
+        this.worker = worker;
+
+        new IgniteThread(worker).start();
+
+        return new IgniteFutureImpl<>(fut);
+    }
+
+    public void stop() {
+        worker.cancel();
+    }
+
     /**
      * Reads data from socket and loads them into target data stream.
      *
@@ -106,4 +137,22 @@ public class IgniteSocketStreamer<E, K, V> {
             }
         }
     }
+
+    private class ReceiverWorker extends GridWorker {
+
+        private final GridWorkerListener lsnr;
+
+        protected ReceiverWorker(String gridName, String name, IgniteLogger log, GridWorkerListener lsnr) {
+            super(gridName, name, log, lsnr);
+            this.lsnr = lsnr;
+        }
+
+        /** {@inheritDoc} */
+        @Override protected void body() throws InterruptedException, IgniteInterruptedCheckedException {
+            lsnr.onStarted(this);
+            loadData();
+            lsnr.onStopped(this);
+        }
+    }
+
 }

@@ -777,7 +777,9 @@ public abstract class GridCacheAbstractFieldsQuerySelfTest extends GridCommonAbs
     }
 
     /** @throws Exception If failed. */
-    public void _testNoPrimitives() throws Exception { // TODO
+    public void testNoPrimitives() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-588");
+        
         GridCache<Object, Object> cache = ((IgniteKernal)grid(0)).getCache(CACHE_NO_PRIMITIVES);
 
         assert cache.putx("key", "val");
@@ -796,7 +798,9 @@ public abstract class GridCacheAbstractFieldsQuerySelfTest extends GridCommonAbs
     }
 
     /** @throws Exception If failed. */
-    public void _testComplexKeys() throws Exception { // TODO
+    public void testComplexKeys() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-588");
+        
         GridCache<PersonKey, Person> cache = ((IgniteKernal)grid(0)).getCache(CACHE_COMPLEX_KEYS);
 
         UUID id = UUID.randomUUID();

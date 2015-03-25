@@ -102,18 +102,23 @@ public class GridCacheOffHeapMultiThreadedUpdateSelfTest extends GridCacheOffHea
     /**
      * @throws Exception If failed.
      */
-    public void testPutTx() throws Exception {
+    public void testPutTxPessimistic() throws Exception {
         testPutTx(keyForNode(0), PESSIMISTIC);
 
-        // TODO GG-8118.
-        //testPutTx(keyForNode(0), OPTIMISTIC);
-
-        if (gridCount() > 1) {
+        if (gridCount() > 1)
             testPutTx(keyForNode(1), PESSIMISTIC);
+    }
+    
+    /**
+     * @throws Exception If failed.
+     */
+    public void testPutTxOptimistic() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-592");
+        
+        testPutTx(keyForNode(0), OPTIMISTIC);
 
-            // TODO GG-8118.
-            //testPutTx(keyForNode(1), OPTIMISTIC);
-        }
+        if (gridCount() > 1)
+            testPutTx(keyForNode(1), OPTIMISTIC);
     }
 
     /**
@@ -158,18 +163,23 @@ public class GridCacheOffHeapMultiThreadedUpdateSelfTest extends GridCacheOffHea
     /**
      * @throws Exception If failed.
      */
-    public void testPutxIfAbsentTx() throws Exception {
+    public void testPutxIfAbsentTxPessimistic() throws Exception {
         testPutxIfAbsentTx(keyForNode(0), PESSIMISTIC);
 
-        // TODO GG-8118.
-        //testPutxIfAbsentTx(keyForNode(0), OPTIMISTIC);
-
-        if (gridCount() > 1) {
+        if (gridCount() > 1)
             testPutxIfAbsentTx(keyForNode(1), PESSIMISTIC);
+    }
 
-            // TODO GG-8118.
-            //testPutxIfAbsentTx(keyForNode(1), OPTIMISTIC);
-        }
+    /**
+     * @throws Exception If failed.
+     */
+    public void testPutxIfAbsentTxOptimistic() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-592");
+        
+        testPutxIfAbsentTx(keyForNode(0), OPTIMISTIC);
+
+        if (gridCount() > 1)
+            testPutxIfAbsentTx(keyForNode(1), OPTIMISTIC);
     }
 
     /**

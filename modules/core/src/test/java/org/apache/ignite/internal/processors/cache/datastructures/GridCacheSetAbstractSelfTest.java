@@ -19,7 +19,6 @@ package org.apache.ignite.internal.processors.cache.datastructures;
 
 import junit.framework.*;
 import org.apache.ignite.*;
-import org.apache.ignite.cache.*;
 import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.*;
 import org.apache.ignite.internal.processors.cache.*;
@@ -563,20 +562,20 @@ public abstract class GridCacheSetAbstractSelfTest extends IgniteCollectionAbstr
     }
 
     /**
-     * TODO: GG-7952, enable when fixed.
-     *
      * @throws Exception If failed.
      */
     public void _testNodeJoinsAndLeaves() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-584");
+        
         testNodeJoinsAndLeaves(false);
     }
 
     /**
-     * TODO: GG-7952, enable when fixed.
-     *
      * @throws Exception If failed.
      */
-    public void _testNodeJoinsAndLeavesCollocated() throws Exception {
+    public void testNodeJoinsAndLeavesCollocated() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-584");
+        
         testNodeJoinsAndLeaves(true);
     }
 

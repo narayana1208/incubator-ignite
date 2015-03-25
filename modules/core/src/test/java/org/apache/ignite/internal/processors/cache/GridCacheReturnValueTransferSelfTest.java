@@ -100,17 +100,19 @@ public class GridCacheReturnValueTransferSelfTest extends GridCommonAbstractTest
 
     /**
      * @throws Exception If failed.
-     * TODO gg-8273 enable when fixed
      */
-    public void _testTransformTransactionalNoBackups() throws Exception {
+    public void testTransformTransactionalNoBackups() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-581");
+        
         checkTransform(TRANSACTIONAL, PRIMARY, 0);
     }
 
     /**
      * @throws Exception If failed.
-     * TODO gg-8273 enable when fixed
      */
-    public void _testTransformTransactionalOneBackup() throws Exception {
+    public void testTransformTransactionalOneBackup() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-581");
+        
         checkTransform(TRANSACTIONAL, PRIMARY, 1);
     }
 

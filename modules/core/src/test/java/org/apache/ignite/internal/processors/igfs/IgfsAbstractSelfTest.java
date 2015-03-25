@@ -783,9 +783,10 @@ public abstract class IgfsAbstractSelfTest extends IgfsCommonAbstractTest {
      *
      * @throws Exception If failed.
      */
-    // TODO Enable after GG-8578.
     @SuppressWarnings("ConstantConditions")
-    public void _testFormat() throws Exception {
+    public void testFormat() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-586");
+        
         IgniteKernal grid = (IgniteKernal)G.ignite("grid");
         GridCache cache = grid.internalCache("dataCache");
 

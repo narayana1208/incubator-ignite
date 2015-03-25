@@ -109,7 +109,7 @@ public abstract class GridCacheSetFailoverAbstractSelfTest extends IgniteCollect
                     try {
                         int size = set.size();
 
-                        // TODO: GG-7952, check for equality when GG-7952 fixed.
+                        // TODO: check for equality when https://issues.apache.org/jira/browse/IGNITE-584 fixed.
                         assertTrue(size > 0);
                     }
                     catch (IgniteException ignore) {
@@ -127,7 +127,7 @@ public abstract class GridCacheSetFailoverAbstractSelfTest extends IgniteCollect
                             cnt++;
                         }
 
-                        // TODO: GG-7952, check for equality when GG-7952 fixed.
+                        // TODO: check for equality when https://issues.apache.org/jira/browse/IGNITE-584 fixed.
                         assertTrue(cnt > 0);
                     }
                     catch (IgniteException ignore) {

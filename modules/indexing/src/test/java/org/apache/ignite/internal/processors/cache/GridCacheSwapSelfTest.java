@@ -251,8 +251,8 @@ public class GridCacheSwapSelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
-    // TODO: enable when GG-7341 is fixed.
-    public void _testSwapEviction() throws Exception {
+    // Test fails: https://issues.apache.org/jira/browse/IGNITE-599.
+    public void testSwapEviction() throws Exception {
         try {
             final CountDownLatch evicted = new CountDownLatch(10);
 

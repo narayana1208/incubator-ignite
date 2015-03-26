@@ -162,7 +162,7 @@ public abstract class GridCacheSetFailoverAbstractSelfTest extends IgniteCollect
 
         set.close();
 
-        if (false) { // TODO GG-8962: enable check when fixed.
+        if (false) { // TODO IGNITE-600: enable check when fixed.
             int cnt = 0;
 
             Set<IgniteUuid> setIds = new HashSet<>();

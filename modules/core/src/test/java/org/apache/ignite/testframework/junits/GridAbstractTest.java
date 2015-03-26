@@ -673,7 +673,7 @@ public abstract class GridAbstractTest extends TestCase {
      * @return Optimized configuration (by modifying passed in one).
      */
     protected IgniteConfiguration optimize(IgniteConfiguration cfg) {
-        // TODO: GG-4048: propose another way to avoid network overhead in tests.
+        // TODO: IGNITE-605: propose another way to avoid network overhead in tests.
         if (cfg.getLocalHost() == null) {
             if (cfg.getDiscoverySpi() instanceof TcpDiscoverySpi)
                 cfg.setLocalHost("127.0.0.1");

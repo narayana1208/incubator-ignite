@@ -275,9 +275,10 @@ public class GridP2PUserVersionChangeSelfTest extends GridCommonAbstractTest {
 
     /**
      * @throws Exception If failed.
+     * 
+     * Test fails: https://issues.apache.org/jira/browse/IGNITE-604.
      */
-    // TODO: GG-5678 Uncomment when fix
-    public void _testCacheRedeployVersionChangeContinuousMode() throws Exception {
+    public void testCacheRedeployVersionChangeContinuousMode() throws Exception {
         depMode = DeploymentMode.CONTINUOUS;
 
         try {

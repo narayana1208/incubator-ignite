@@ -340,7 +340,7 @@ public class IgniteCacheReplicatedQuerySelfTest extends IgniteCacheAbstractQuery
      */
     public void testNodeLeft() throws Exception {
         // Test works long and fails after. Should be enabled after fix.
-        fail("https://issues.apache.org/jira/browse/IGNITE-588");
+        fail("https://issues.apache.org/jira/browse/IGNITE-613");
         
         try {
             Ignite g = startGrid();

@@ -18,6 +18,7 @@
 package org.apache.ignite.streaming;
 
 import org.apache.ignite.*;
+import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
 
 import java.io.*;
@@ -31,7 +32,13 @@ import java.util.*;
  * @param <K> Cache entry key type.
  * @param <V> Cache entry value type.
  */
-public class IgniteTextSocketStreamer<K, V> extends IgniteSocketStreamer<String, K, V> {
+public class IgniteTextSocketStreamer<K, V> extends StreamReceiver<String, K, V> {
+    /** Host. */
+    private final String host;
+
+    /** Port. */
+    private final int port;
+
     /**
      * Constructs text socket streamer.
      *
@@ -46,16 +53,31 @@ public class IgniteTextSocketStreamer<K, V> extends IgniteSocketStreamer<String,
         IgniteDataStreamer<K, V> streamer,
         IgniteClosure<String, Map.Entry<K, V>> converter
     ) {
-        super(host, port, streamer, converter);
+        super(streamer, converter);
+
+        A.notNull(host, "host is null");
+
+        this.host = host;
+        this.port = port;
     }
 
     /** {@inheritDoc} */
-    @Override protected void loadData(Socket sock) throws IOException {
+    @Override protected void loadData() {
+        try (Socket sock = new Socket(host, port)) {
+            loadData(sock);
+        }
+        catch (Exception e) {
+            throw new IgniteException(e);
+        }
+    }
+
+    /** {@inheritDoc} */
+    private void loadData(Socket sock) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream(), "UTF-8"))) {
             String val;
 
-            while ((val = reader.readLine()) != null)
-                streamer.addData(converter.apply(val));
+            while (!isStopped() && (val = reader.readLine()) != null)
+                addData(val);
         }
     }
 }

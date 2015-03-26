@@ -60,7 +60,7 @@ public class IgniteSocketStreamerTest extends GridCommonAbstractTest {
     /**
      * Tests data loading.
      */
-    public void testLoadData() throws Exception {
+    public void testStreamer() throws Exception {
         try (Ignite g = startGrid()) {
 
             IgniteCache<Integer, String> cache = g.jcache(null);
@@ -81,7 +81,12 @@ public class IgniteSocketStreamerTest extends GridCommonAbstractTest {
                 IgniteSocketStreamer<IgniteBiTuple<Integer, String>, Integer, String> sockStmr =
                     new IgniteSocketStreamer<>(HOST, PORT, stmr, converter);
 
-                sockStmr.loadData();
+                IgniteFuture<Void> fut = sockStmr.start();
+
+                fut.get();
+
+                assertTrue(fut.isDone());
+                assertFalse(fut.isCancelled());
             }
 
             assertEquals(ENTRY_CNT, cache.size());

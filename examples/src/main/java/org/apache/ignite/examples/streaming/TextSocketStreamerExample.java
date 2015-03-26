@@ -92,7 +92,20 @@ public class TextSocketStreamerExample {
                 IgniteTextSocketStreamer<Integer, String> sockStmr =
                     new IgniteTextSocketStreamer<>(HOST, PORT, stmr, converter);
 
-                sockStmr.loadData();
+                IgniteFuture<Void> fut = sockStmr.start();
+
+                try {
+                    fut.get(500);
+                } catch (IgniteFutureTimeoutException e) {
+                    // No-op.
+                }
+
+                //fut.get();
+
+                sockStmr.stop();
+
+                System.out.println(">>> Future done: " + fut.isDone());
+                System.out.println(">>> Future canceled: " + fut.isCancelled());
             }
 
             long end = System.currentTimeMillis();

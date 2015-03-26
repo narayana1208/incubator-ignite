@@ -18,7 +18,6 @@
 package org.apache.ignite.examples.streaming;
 
 import org.apache.ignite.*;
-import org.apache.ignite.cache.*;
 import org.apache.ignite.examples.*;
 import org.apache.ignite.examples.datagrid.*;
 import org.apache.ignite.lang.*;
@@ -91,24 +90,9 @@ public class SocketStreamerExample {
                 IgniteSocketStreamer<IgniteBiTuple<Integer, String>, Integer, String> sockStmr =
                     new IgniteSocketStreamer<>(HOST, PORT, stmr, converter);
 
-                //sockStmr.loadData();
-
-                System.out.println(">>> Start streaming async");
-
                 IgniteFuture<Void> fut = sockStmr.start();
 
-                System.out.println(">>> Future obtained");
-
-                try {
-                    fut.get(3000);
-                }
-                catch (IgniteFutureTimeoutException e) {
-                    // No-op.
-                }
-
-                sockStmr.stop();
-
-                System.out.println(">>> Future completed for " + fut.duration());
+                fut.get();
             }
 
             long end = System.currentTimeMillis();
@@ -131,11 +115,8 @@ public class SocketStreamerExample {
                      ObjectOutputStream oos =
                          new ObjectOutputStream(new BufferedOutputStream(sock.getOutputStream()))) {
 
-                    for (int i = 0; i < ENTRY_COUNT; i++) {
+                    for (int i = 0; i < ENTRY_COUNT; i++)
                         oos.writeObject(new IgniteBiTuple<>(i, Integer.toString(i)));
-                        if (i > 0 && i % 1000 == 0)
-                            System.out.println(">>> " + i + " events sent.");
-                    }
                 }
                 catch (IOException e) {
                     // No-op.

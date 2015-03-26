@@ -18,13 +18,8 @@
 package org.apache.ignite.streaming;
 
 import org.apache.ignite.*;
-import org.apache.ignite.internal.*;
-import org.apache.ignite.internal.util.future.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
-import org.apache.ignite.internal.util.worker.*;
 import org.apache.ignite.lang.*;
-import org.apache.ignite.logger.*;
-import org.apache.ignite.thread.*;
 
 import java.io.*;
 import java.net.*;
@@ -38,23 +33,12 @@ import java.util.*;
  * @param <K> Cache entry key type.
  * @param <V> Cache entry value type.
  */
-public class IgniteSocketStreamer<E, K, V> {
-    /** Logger. */
-    private static final IgniteLogger log = new NullLogger();
-
+public class IgniteSocketStreamer<E, K, V> extends StreamReceiver<E,K,V> {
     /** Host. */
     private final String host;
 
     /** Port. */
     private final int port;
-
-    private volatile GridWorker worker;
-
-    /** Target streamer. */
-    protected final IgniteDataStreamer<K, V> streamer;
-
-    /** Stream to entries iterator transformer. */
-    protected final IgniteClosure<E, Map.Entry<K, V>> converter;
 
     /**
      * Constructs socket streamer.
@@ -70,20 +54,16 @@ public class IgniteSocketStreamer<E, K, V> {
         IgniteDataStreamer<K, V> streamer,
         IgniteClosure<E, Map.Entry<K, V>> converter
     ) {
-        A.notNull(streamer, "streamer is null");
+        super(streamer, converter);
+
         A.notNull(host, "host is null");
-        A.notNull(converter, "converter is null");
 
         this.host = host;
         this.port = port;
-        this.streamer = streamer;
-        this.converter = converter;
     }
 
-    /**
-     * Performs loading of data stream.
-     */
-    public void loadData() {
+    /** {@inheritDoc} */
+    @Override protected void loadData() {
         try (Socket sock = new Socket(host, port)) {
             loadData(sock);
         }
@@ -92,41 +72,19 @@ public class IgniteSocketStreamer<E, K, V> {
         }
     }
 
-    public IgniteFuture<Void> start() {
-
-        final GridFutureAdapter<Void> fut = new GridFutureAdapter<>();
-
-        ReceiverWorker worker = new ReceiverWorker(
-            "GRID???", "Socket streamer receiver", log, new GridWorkerListenerAdapter() {
-            @Override public void onStopped(GridWorker w) {
-                fut.onDone();
-            }
-        });
-
-        this.worker = worker;
-
-        new IgniteThread(worker).start();
-
-        return new IgniteFutureImpl<>(fut);
-    }
-
-    public void stop() {
-        worker.cancel();
-    }
-
     /**
      * Reads data from socket and loads them into target data stream.
      *
      * @param sock Socket.
      */
     @SuppressWarnings("unchecked")
-    protected void loadData(Socket sock) throws IOException {
+    private void loadData(Socket sock) throws IOException {
         try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(sock.getInputStream()))) {
-            while (true) {
+            while (!isStopped()) {
                 try {
                     E element = (E) ois.readObject();
 
-                    streamer.addData(converter.apply(element));
+                    addData(element);
                 }
                 catch (EOFException e) {
                     break;
@@ -137,22 +95,4 @@ public class IgniteSocketStreamer<E, K, V> {
             }
         }
     }
-
-    private class ReceiverWorker extends GridWorker {
-
-        private final GridWorkerListener lsnr;
-
-        protected ReceiverWorker(String gridName, String name, IgniteLogger log, GridWorkerListener lsnr) {
-            super(gridName, name, log, lsnr);
-            this.lsnr = lsnr;
-        }
-
-        /** {@inheritDoc} */
-        @Override protected void body() throws InterruptedException, IgniteInterruptedCheckedException {
-            lsnr.onStarted(this);
-            loadData();
-            lsnr.onStopped(this);
-        }
-    }
-
 }

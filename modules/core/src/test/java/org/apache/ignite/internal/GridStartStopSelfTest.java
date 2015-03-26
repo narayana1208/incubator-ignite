@@ -71,6 +71,7 @@ public class GridStartStopSelfTest extends GridCommonAbstractTest {
      * @throws Exception If failed.
      */
     public void testStopWhileInUse() throws Exception {
+        // Test works too long.
         fail("https://issues.apache.org/jira/browse/IGNITE-580");
         
         IgniteConfiguration cfg = new IgniteConfiguration();

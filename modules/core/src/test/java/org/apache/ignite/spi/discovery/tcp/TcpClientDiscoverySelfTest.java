@@ -427,9 +427,8 @@ public class TcpClientDiscoverySelfTest extends GridCommonAbstractTest {
     /**
      * @throws Exception If failed.
      */
+    // Test fails: https://issues.apache.org/jira/browse/IGNITE-587.
     public void testDataExchangeFromClient() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-587");
-        
         testDataExchange("client-0");
     }
 

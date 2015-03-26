@@ -459,9 +459,8 @@ public abstract class GridCacheQueueMultiNodeAbstractSelfTest extends IgniteColl
     /**
      * @throws Exception If failed.
      */
+    // Test fails: https://issues.apache.org/jira/browse/IGNITE-583.
     public void testIterator() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-583");
-        
         final String queueName = UUID.randomUUID().toString();
 
         info("Queue name: " + queueName);

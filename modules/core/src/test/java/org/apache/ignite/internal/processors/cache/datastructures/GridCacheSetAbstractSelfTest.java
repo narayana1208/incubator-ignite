@@ -564,18 +564,16 @@ public abstract class GridCacheSetAbstractSelfTest extends IgniteCollectionAbstr
     /**
      * @throws Exception If failed.
      */
-    public void _testNodeJoinsAndLeaves() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-584");
-        
+    // Test fails: https://issues.apache.org/jira/browse/IGNITE-584.
+    public void testNodeJoinsAndLeaves() throws Exception {
         testNodeJoinsAndLeaves(false);
     }
 
     /**
      * @throws Exception If failed.
      */
+    // Test fails: https://issues.apache.org/jira/browse/IGNITE-584.
     public void testNodeJoinsAndLeavesCollocated() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-584");
-        
         testNodeJoinsAndLeaves(true);
     }
 

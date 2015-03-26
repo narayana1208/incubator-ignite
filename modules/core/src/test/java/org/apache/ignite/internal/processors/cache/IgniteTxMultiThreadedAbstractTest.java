@@ -206,9 +206,8 @@ public abstract class IgniteTxMultiThreadedAbstractTest extends IgniteTxAbstract
     /**
      * @throws Exception If failed.
      */
+    // Test fails: https://issues.apache.org/jira/browse/IGNITE-582.
     public void testOptimisticSerializableConsistency() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-582");
-        
         final IgniteCache<Integer, Long> cache = grid(0).cache(null);
 
         final int THREADS = 2;

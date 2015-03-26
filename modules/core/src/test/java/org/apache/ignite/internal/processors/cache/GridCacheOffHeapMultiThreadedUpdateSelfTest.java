@@ -112,9 +112,8 @@ public class GridCacheOffHeapMultiThreadedUpdateSelfTest extends GridCacheOffHea
     /**
      * @throws Exception If failed.
      */
+    // Test fails: https://issues.apache.org/jira/browse/IGNITE-592.
     public void testPutTxOptimistic() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-592");
-        
         testPutTx(keyForNode(0), OPTIMISTIC);
 
         if (gridCount() > 1)
@@ -173,9 +172,8 @@ public class GridCacheOffHeapMultiThreadedUpdateSelfTest extends GridCacheOffHea
     /**
      * @throws Exception If failed.
      */
+    // Test fails: https://issues.apache.org/jira/browse/IGNITE-592.
     public void testPutxIfAbsentTxOptimistic() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-592");
-        
         testPutxIfAbsentTx(keyForNode(0), OPTIMISTIC);
 
         if (gridCount() > 1)

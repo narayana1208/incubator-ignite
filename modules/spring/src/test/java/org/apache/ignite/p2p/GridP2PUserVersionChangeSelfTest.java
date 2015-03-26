@@ -279,6 +279,9 @@ public class GridP2PUserVersionChangeSelfTest extends GridCommonAbstractTest {
      * Test fails: https://issues.apache.org/jira/browse/IGNITE-604.
      */
     public void testCacheRedeployVersionChangeContinuousMode() throws Exception {
+        // Build execution timeout if try to run test on TC.
+        fail("https://issues.apache.org/jira/browse/IGNITE-604");
+        
         depMode = DeploymentMode.CONTINUOUS;
 
         try {

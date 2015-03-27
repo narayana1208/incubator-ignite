@@ -33,7 +33,7 @@ import java.util.*;
  * @param <K> Cache entry key type.
  * @param <V> Cache entry value type.
  */
-public class IgniteSocketStreamer<E, K, V> extends StreamReceiver<E,K,V> {
+public class IgniteSocketStreamer<E, K, V> extends StreamReceiver<E, K, V> {
     /** Host. */
     private final String host;
 

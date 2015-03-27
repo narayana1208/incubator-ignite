@@ -69,14 +69,13 @@ public class IgniteTextSocketStreamerTest extends GridCommonAbstractTest {
 
                 fut.get();
 
-                System.out.println(">>> STATE " + sockStmr.state());
-
                 assertTrue(fut.isDone());
                 assertFalse(fut.isCancelled());
             }
 
             assertEquals(ENTRY_CNT, cache.size());
-        } finally {
+        }
+        finally {
             stopAllGrids();
         }
     }

@@ -28,9 +28,9 @@ import java.util.concurrent.*;
 /**
  * Base implementation of stream receiver.
  *
- * @param <E>
- * @param <K>
- * @param <V>
+ * @param <E> Type of stream element.
+ * @param <K> Type of cache entry key.
+ * @param <V> Type of cache entry value/
  */
 public abstract class StreamReceiver<E, K, V> {
     /** Object monitor. */
@@ -92,7 +92,8 @@ public abstract class StreamReceiver<E, K, V> {
 
             try {
                 stopLatch.await();
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 // No-op.
             }
         }
@@ -178,8 +179,11 @@ public abstract class StreamReceiver<E, K, V> {
             finally {
                 if (state == State.STOPPED)
                     fut.onCancelled();
-                else
+                else {
+                    state = State.STOPPED;
+
                     fut.onDone(null, err);
+                }
 
                 stopLatch.countDown();
             }

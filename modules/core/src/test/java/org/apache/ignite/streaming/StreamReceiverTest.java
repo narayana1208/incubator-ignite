@@ -8,35 +8,44 @@ import org.jetbrains.annotations.*;
 import java.util.*;
 
 /**
- *
+ * Tests for {@link StreamReceiver}.
  */
 public class StreamReceiverTest extends TestCase {
-
+    /** Converter. */
     private static final IgniteClosure<Integer, Map.Entry<Integer, String>> CONVERTER =
         new IgniteClosure<Integer, Map.Entry<Integer, String>>() {
-        @Override public Map.Entry<Integer, String> apply(Integer input) {
-            return new IgniteBiTuple<>(input, input.toString());
-        }
+            @Override public Map.Entry<Integer, String> apply(Integer input) {
+                return new IgniteBiTuple<>(input, input.toString());
+            }
     };
 
+    /** Stmr. */
     private static final IgniteDataStreamer<Integer, String> STMR = new DataStreamerStub<>();
 
-    private volatile boolean finished = false;
-
-    public void testName() throws Exception {
-        StreamReceiver<Integer, Integer, String> receiver =
-            new StreamReceiver<Integer, Integer, String>(STMR, CONVERTER) {
-                @Override protected void loadData() {
-                    while (!isStopped() && !finished) {
-                        try {
-                            Thread.sleep(50);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+    /** Receiver. */
+    private final StreamReceiver<Integer, Integer, String> receiver =
+        new StreamReceiver<Integer, Integer, String>(STMR, CONVERTER) {
+            @Override protected void loadData() {
+                while (!isStopped() && !terminatedNormally) {
+                    try {
+                        Thread.sleep(50);
+                    }
+                    catch (InterruptedException e) {
+                        // No-op.
                     }
                 }
-            };
+            }
+        };
 
+    /** Terminated normally flag. */
+    private volatile boolean terminatedNormally;
+
+    /**
+     * Tests receiver behavior in case of normal termination.
+     *
+     * @throws Exception If error occurred.
+     */
+    public void testTerminatedNormally() throws Exception {
         assertEquals(StreamReceiver.State.INITIALIZED, receiver.state());
         assertFalse(receiver.isStarted());
         assertFalse(receiver.isStopped());
@@ -65,8 +74,7 @@ public class StreamReceiverTest extends TestCase {
         assertFalse(fut.isDone());
         assertFalse(fut.isCancelled());
 
-        //finished = true;
-        receiver.stop();
+        terminatedNormally = true;
 
         fut.get();
 
@@ -77,9 +85,59 @@ public class StreamReceiverTest extends TestCase {
 
         assertTrue(fut.isDone());
         assertFalse(fut.isCancelled());
-
     }
 
+    /**
+     * Tests receiver behavior in case of forced termination.
+     *
+     * @throws Exception If error occurred.
+     */
+    public void testStopped() throws Exception {
+        assertEquals(StreamReceiver.State.INITIALIZED, receiver.state());
+        assertFalse(receiver.isStarted());
+        assertFalse(receiver.isStopped());
+
+        IgniteFuture<Void> fut = receiver.start();
+
+        assertEquals(StreamReceiver.State.STARTED, receiver.state());
+
+        assertTrue(receiver.isStarted());
+        assertFalse(receiver.isStopped());
+
+        assertFalse(fut.isDone());
+        assertFalse(fut.isCancelled());
+
+        try {
+            fut.get(500);
+        }
+        catch (IgniteException e) {
+            // No-op.
+        }
+
+        assertEquals(StreamReceiver.State.STARTED, receiver.state());
+        assertTrue(receiver.isStarted());
+        assertFalse(receiver.isStopped());
+
+        assertFalse(fut.isDone());
+        assertFalse(fut.isCancelled());
+
+        receiver.stop();
+
+        assertEquals(StreamReceiver.State.STOPPED, receiver.state());
+
+        assertFalse(receiver.isStarted());
+        assertTrue(receiver.isStopped());
+
+        assertTrue(fut.isDone());
+        assertTrue(fut.isCancelled());
+    }
+
+    /**
+     * Receiver stub.
+     *
+     * @param <K> Key type.
+     * @param <V> Value type.
+     */
     private static class DataStreamerStub<K, V> implements IgniteDataStreamer<K, V> {
 
         /** {@inheritDoc} */
@@ -94,7 +152,7 @@ public class StreamReceiverTest extends TestCase {
 
         /** {@inheritDoc} */
         @Override public void allowOverwrite(boolean allowOverwrite) throws IgniteException {
-
+            // No-op.
         }
 
         /** {@inheritDoc} */
@@ -169,7 +227,7 @@ public class StreamReceiverTest extends TestCase {
 
         /** {@inheritDoc} */
         @Override public IgniteFuture<?> addData(Collection<? extends Map.Entry<K, V>> entries)
-            throws IllegalStateException {
+                throws IllegalStateException {
             return null;
         }
 

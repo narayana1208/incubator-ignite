@@ -144,12 +144,12 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(GridCacheTxPartitionedLocalStoreSelfTest.class);
         suite.addTestSuite(IgniteCacheSystemTransactionsSelfTest.class);
 
-        // Heuristic exception handling. TODO IGNITE-257
-//        suite.addTestSuite(GridCacheColocatedTxExceptionSelfTest.class);
-//        suite.addTestSuite(GridCacheReplicatedTxExceptionSelfTest.class);
-//        suite.addTestSuite(GridCacheLocalTxExceptionSelfTest.class);
-//        suite.addTestSuite(GridCacheNearTxExceptionSelfTest.class);
-//        suite.addTestSuite(GridCacheStopSelfTest.class); TODO IGNITE-257
+        // Heuristic exception handling.
+        suite.addTestSuite(GridCacheColocatedTxExceptionSelfTest.class);
+        suite.addTestSuite(GridCacheReplicatedTxExceptionSelfTest.class);
+        suite.addTestSuite(GridCacheLocalTxExceptionSelfTest.class);
+        suite.addTestSuite(GridCacheNearTxExceptionSelfTest.class);
+        suite.addTestSuite(GridCacheStopSelfTest.class);
 
         // Local cache.
         suite.addTestSuite(GridCacheLocalBasicApiSelfTest.class);
@@ -397,16 +397,14 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(IgniteCacheTxLocalPeekModesTest.class);
         suite.addTestSuite(IgniteCacheTxReplicatedPeekModesTest.class);
 
-        // TODO: IGNITE-114.
-        // suite.addTestSuite(IgniteCacheInvokeReadThroughTest.class);
-        // suite.addTestSuite(GridCacheVersionMultinodeTest.class);
+        suite.addTestSuite(IgniteCacheInvokeReadThroughTest.class);
+        suite.addTestSuite(GridCacheVersionMultinodeTest.class);
 
         suite.addTestSuite(IgniteCacheNearReadCommittedTest.class);
         suite.addTestSuite(IgniteCacheAtomicCopyOnReadDisabledTest.class);
         suite.addTestSuite(IgniteCacheTxCopyOnReadDisabledTest.class);
 
-        // TODO: IGNITE-477.
-        // suite.addTestSuite(IgniteCacheTxPreloadNoWriteTest.class);
+        suite.addTestSuite(IgniteCacheTxPreloadNoWriteTest.class);
 
         suite.addTestSuite(IgniteDynamicCacheStartSelfTest.class);
         suite.addTestSuite(IgniteCacheDynamicStopSelfTest.class);

@@ -22,6 +22,11 @@ package org.apache.ignite.internal.processors.cache;
  */
 public class GridCacheInterceptorWithStoreSelfTest extends GridCacheInterceptorSelfTest {
     /** {@inheritDoc} */
+    @Override protected void beforeTest() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-591");
+    }
+
+    /** {@inheritDoc} */
     @Override protected boolean storeEnabled() {
         return true;
     }

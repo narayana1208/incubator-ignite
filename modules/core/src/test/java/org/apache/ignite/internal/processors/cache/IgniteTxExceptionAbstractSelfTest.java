@@ -99,6 +99,8 @@ public abstract class IgniteTxExceptionAbstractSelfTest extends GridCacheAbstrac
 
     /** {@inheritDoc} */
     @Override protected void beforeTest() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-257"); // Delete the line after fix.
+        
         super.beforeTest();
 
         lastKey = 0;

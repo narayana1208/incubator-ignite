@@ -29,6 +29,11 @@ import static org.apache.ignite.cache.CacheMode.*;
  */
 public class GridCacheAtomicNearRemoveFailureTest extends GridCacheAbstractRemoveFailureTest {
     /** {@inheritDoc} */
+    @Override protected void beforeTest() throws Exception {
+        fail("https://issues.apache.org/jira/browse/IGNITE-560");
+    }
+
+    /** {@inheritDoc} */
     @Override protected CacheMode cacheMode() {
         return PARTITIONED;
     }

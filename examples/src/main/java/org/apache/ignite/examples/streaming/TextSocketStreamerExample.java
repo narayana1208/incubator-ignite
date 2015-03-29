@@ -18,30 +18,39 @@
 package org.apache.ignite.examples.streaming;
 
 import org.apache.ignite.*;
-import org.apache.ignite.cache.*;
-import org.apache.ignite.examples.*;
-import org.apache.ignite.lang.*;
-import org.apache.ignite.streaming.*;
+import org.apache.ignite.examples.ExampleNodeStartup;
+import org.apache.ignite.examples.ExamplesUtils;
+import org.apache.ignite.examples.streaming.numbers.CacheConfig;
+import org.apache.ignite.examples.streaming.numbers.QueryPopularNumbers;
+import org.apache.ignite.lang.IgniteBiTuple;
+import org.apache.ignite.lang.IgniteClosure;
+import org.apache.ignite.streaming.IgniteTextSocketStreamer;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Map;
+import java.util.Random;
 
 /**
- * Demonstrates how cache can be populated with data utilizing {@link IgniteTextSocketStreamer} API.
+ * Stream random numbers into the streaming cache.
+ * To start the example, you should:
+ * <ul>
+ *     <li>Start a few nodes using {@link ExampleNodeStartup} or by starting remote nodes as specified below.</li>
+ *     <li>Start querying popular numbers using {@link QueryPopularNumbers}.</li>
+ *     <li>Start streaming using {@link TextSocketStreamerExample}.</li>
+ * </ul>
  * <p>
- * Remote nodes should always be started with special configuration file which
- * enables P2P class loading: {@code 'ignite.{sh|bat} examples/config/example-cache.xml'}.
- * <p>
- * Alternatively you can run {@link ExampleNodeStartup} in another JVM which will
- * start node with {@code examples/config/example-cache.xml} configuration.
+ * You should start remote nodes by running {@link ExampleNodeStartup} in another JVM.
  */
 public class TextSocketStreamerExample {
-    /** Number of entries to load. */
-    private static final int ENTRY_COUNT = 500000;
+    /** Random number generator. */
+    private static final Random RAND = new Random();
 
-    /** Heap size required to run this example. */
-    public static final int MIN_MEMORY = 512 * 1024 * 1024;
+    /** Range within which to generate numbers. */
+    private static final int RANGE = 1000;
 
     /** Streaming server host. */
     private static final String HOST = "localhost";
@@ -55,56 +64,36 @@ public class TextSocketStreamerExample {
      * @param args Command line arguments, none required.
      * @throws IgniteException If example execution failed.
      */
-    public static void main(String[] args) throws IgniteException {
-        ExamplesUtils.checkMinMemory(MIN_MEMORY);
-
-        try (Ignite ignite = Ignition.start("examples/config/example-cache.xml")) {
-            System.out.println();
-            System.out.println(">>> Cache data streamer example started.");
+    public static void main(String[] args) throws IgniteException, InterruptedException {
+        try (Ignite ignite = Ignition.start("examples/config/example-ignite.xml")) {
+            if (!ExamplesUtils.hasServerNodes(ignite))
+                return;
 
             startServer();
 
-            // Clean up caches on all nodes before run.
-            ignite.cache(null).clear();
+            // The cache is configured with sliding window holding 1 second of the streaming data.
+            IgniteCache<Integer, Long> stmCache = ignite.getOrCreateCache(CacheConfig.randomNumbersCache());
 
-            System.out.println();
-            System.out.println(">>> Cache clear finished.");
+            try (IgniteDataStreamer<Integer, Long> stmr = ignite.dataStreamer(stmCache.getName())) {
+                // Allow data updates.
+                stmr.allowOverwrite(true);
 
-            long start = System.currentTimeMillis();
-
-            try (IgniteDataStreamer<Integer, String> stmr = ignite.dataStreamer(null)) {
-                // Configure loader.
-                stmr.perNodeBufferSize(1024);
-                stmr.perNodeParallelOperations(8);
-
-                IgniteClosure<String, Map.Entry<Integer, String>> converter =
-                    new IgniteClosure<String, Map.Entry<Integer, String>>() {
-                        @Override public Map.Entry<Integer, String> apply(String input) {
+                IgniteClosure<String, Map.Entry<Integer, Long>> converter =
+                    new IgniteClosure<String, Map.Entry<Integer, Long>>() {
+                        @Override public Map.Entry<Integer, Long> apply(String input) {
                             String[] pair = input.split("=");
-                            return new IgniteBiTuple<>(Integer.parseInt(pair[0]), pair[1]);
+                            return new IgniteBiTuple<>(Integer.parseInt(pair[0]), Long.parseLong(pair[1]));
                         }
                 };
 
-                IgniteTextSocketStreamer<Integer, String> sockStmr =
+                IgniteTextSocketStreamer<Integer, Long> sockStmr =
                     new IgniteTextSocketStreamer<>(HOST, PORT, stmr, converter);
 
                 sockStmr.start();
 
-                //TODO: wait ???
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                sockStmr.stop();
+                while(true)
+                    Thread.sleep(1000);
             }
-
-            long end = System.currentTimeMillis();
-
-            System.out.println(">>> Cache Size " + ignite.cache(null).size(CachePeekMode.PRIMARY));
-
-            System.out.println(">>> Loaded " + ENTRY_COUNT + " keys in " + (end - start) + "ms.");
         }
     }
 
@@ -122,12 +111,22 @@ public class TextSocketStreamerExample {
                      BufferedWriter writer =
                          new BufferedWriter(new OutputStreamWriter(sock.getOutputStream(), "UTF-8"))) {
 
-                    for (int i = 0; i < ENTRY_COUNT; i++) {
-                        String num = Integer.toString(i);
 
-                        writer.write(num + '=' + num);
+                    while(true) {
+                        int key = RAND.nextInt(RANGE);
+
+                        int value = RAND.nextInt(RANGE) + 1;
+
+                        writer.write(Integer.toString(key) + '=' + Integer.toString(value));
 
                         writer.newLine();
+
+                        try {
+                            Thread.sleep(1);
+                        }
+                        catch (InterruptedException e) {
+                            // No-op.
+                        }
                     }
                 }
                 catch (IOException e) {

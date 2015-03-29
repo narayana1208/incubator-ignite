@@ -40,7 +40,7 @@ public class IgniteSocketStreamerTest extends GridCommonAbstractTest {
     private static final int PORT = 5555;
 
     /** Entry count. */
-    private static final int ENTRY_CNT = 50000;
+    private static final int ENTRY_CNT = 5000;
 
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
@@ -96,7 +96,7 @@ public class IgniteSocketStreamerTest extends GridCommonAbstractTest {
 
                 // Wait for all data streamed.
                 while (cnt.get() < ENTRY_CNT)
-                    Thread.sleep(200);
+                    Thread.sleep(100);
 
                 sockStmr.stop();
 
@@ -105,7 +105,8 @@ public class IgniteSocketStreamerTest extends GridCommonAbstractTest {
             }
 
             assertEquals(ENTRY_CNT, cache.size());
-        } finally {
+        }
+        finally {
             stopAllGrids();
         }
     }

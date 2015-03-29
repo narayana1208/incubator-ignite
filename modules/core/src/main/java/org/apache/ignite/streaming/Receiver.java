@@ -25,13 +25,13 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * Base implementation of stream receiver.
+ * Base implementation of data receiver.
  *
  * @param <E> Type of stream element.
  * @param <K> Type of cache entry key.
- * @param <V> Type of cache entry value/
+ * @param <V> Type of cache entry value.
  */
-public abstract class StreamReceiver<E, K, V> {
+public abstract class Receiver<E, K, V> {
     /** Object monitor. */
     private final Object lock = new Object();
 
@@ -47,13 +47,16 @@ public abstract class StreamReceiver<E, K, V> {
     /** Element to entries transformer. */
     private final IgniteClosure<E, Map.Entry<K, V>> converter;
 
+    /** Restart interval in milliseconds. */
+    private volatile long restartInterval = 2000;
+
     /**
      * Constructs stream receiver.
      *
      * @param streamer Streamer.
      * @param converter Element to entries transformer.
      */
-    public StreamReceiver(IgniteDataStreamer<K, V> streamer, IgniteClosure<E, Map.Entry<K, V>> converter) {
+    public Receiver(IgniteDataStreamer<K, V> streamer, IgniteClosure<E, Map.Entry<K, V>> converter) {
         A.notNull(streamer, "streamer is null");
         A.notNull(converter, "converter is null");
 
@@ -62,21 +65,32 @@ public abstract class StreamReceiver<E, K, V> {
     }
 
     /**
-     * Starts streamer.
+     * Sets restart interval in milliseconds.
+     *
+     * @param interval Interval in milliseconds.
+     */
+    public void restartInterval(long interval) {
+        A.ensure(interval > 0, "interval > 0");
+
+        this.restartInterval = interval;
+    }
+
+    /**
+     * Starts receiver.
      */
     public void start() {
         synchronized (lock) {
             if (state != State.INITIALIZED)
                 throw new IllegalStateException("Receiver in " + state + " state can't be started.");
 
-            new Thread(new Receiver()).start();
+            new Thread(new ReceiverWorker()).start();
 
             state = State.STARTED;
         }
     }
 
     /**
-     * Stops streamer.
+     * Stops receiver.
      */
     public void stop() {
         synchronized (lock) {
@@ -92,15 +106,6 @@ public abstract class StreamReceiver<E, K, V> {
                 // No-op.
             }
         }
-    }
-
-    /**
-     * Returns stream receiver state.
-     *
-     * @return stream receiver state.
-     */
-    public State state() {
-        return state;
     }
 
     /**
@@ -122,9 +127,9 @@ public abstract class StreamReceiver<E, K, V> {
     }
 
     /**
-     * Performs actual loading of data. Override this method in order to implement own data loading functionality.
+     * Performs actual data receiving.
      */
-    protected abstract void loadData();
+    protected abstract void receive();
 
     /**
      * Convert stream data to cache entry and transfer it to the target streamer.
@@ -150,17 +155,29 @@ public abstract class StreamReceiver<E, K, V> {
     /**
      * Receiver worker that actually receives data from socket.
      */
-    private class Receiver implements Runnable {
+    private class ReceiverWorker implements Runnable {
         /** {@inheritDoc} */
         @Override public void run() {
-            try {
-                loadData();
-            }
-            catch (Throwable e) {
-                //TODO: restart
-            }
-            finally {
-                stopLatch.countDown();
+            while (true) {
+                try {
+                    receive();
+                }
+                catch (Throwable e) {
+                    // No-op.
+                }
+
+                if (isStopped()) {
+                    stopLatch.countDown();
+
+                    break;
+                }
+
+                try {
+                    Thread.sleep(restartInterval);
+                }
+                catch (InterruptedException e) {
+                    // No-op.
+                }
             }
         }
     }

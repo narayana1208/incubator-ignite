@@ -32,7 +32,7 @@ import java.util.*;
  * @param <K> Cache entry key type.
  * @param <V> Cache entry value type.
  */
-public class IgniteTextSocketStreamer<K, V> extends StreamReceiver<String, K, V> {
+public class IgniteTextSocketStreamer<K, V> extends Receiver<String, K, V> {
     /** Host. */
     private final String host;
 
@@ -62,7 +62,7 @@ public class IgniteTextSocketStreamer<K, V> extends StreamReceiver<String, K, V>
     }
 
     /** {@inheritDoc} */
-    @Override protected void loadData() {
+    @Override protected void receive() {
         try (Socket sock = new Socket(host, port)) {
             loadData(sock);
         }

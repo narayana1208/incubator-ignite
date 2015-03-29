@@ -9,9 +9,9 @@ import org.jetbrains.annotations.*;
 import java.util.*;
 
 /**
- * Tests for {@link StreamReceiver}.
+ * Tests for {@link Receiver}.
  */
-public class StreamReceiverTest extends TestCase {
+public class ReceiverTest extends TestCase {
     /** Converter. */
     private static final IgniteClosure<Integer, Map.Entry<Integer, String>> CONVERTER =
         new IgniteClosure<Integer, Map.Entry<Integer, String>>() {
@@ -24,9 +24,9 @@ public class StreamReceiverTest extends TestCase {
     private static final IgniteDataStreamer<Integer, String> STMR = new DataStreamerStub<>();
 
     /** Receiver. */
-    private final StreamReceiver<Integer, Integer, String> receiver =
-        new StreamReceiver<Integer, Integer, String>(STMR, CONVERTER) {
-            @Override protected void loadData() {
+    private final Receiver<Integer, Integer, String> receiver =
+        new Receiver<Integer, Integer, String>(STMR, CONVERTER) {
+            @Override protected void receive() {
                 while (!isStopped()) {
                     try {
                         Thread.sleep(50);
@@ -44,13 +44,10 @@ public class StreamReceiverTest extends TestCase {
      * @throws Exception If error occurred.
      */
     public void testReceiver() throws Exception {
-        assertEquals(StreamReceiver.State.INITIALIZED, receiver.state());
         assertFalse(receiver.isStarted());
         assertFalse(receiver.isStopped());
 
         receiver.start();
-
-        assertEquals(StreamReceiver.State.STARTED, receiver.state());
 
         assertTrue(receiver.isStarted());
         assertFalse(receiver.isStopped());
@@ -60,10 +57,24 @@ public class StreamReceiverTest extends TestCase {
 
         receiver.stop();
 
-        assertEquals(StreamReceiver.State.STOPPED, receiver.state());
-
         assertFalse(receiver.isStarted());
         assertTrue(receiver.isStopped());
+
+        try {
+            receiver.start();
+            fail("IllegalStateException expected.");
+        }
+        catch (IllegalStateException e) {
+            // No-op
+        }
+
+        try {
+            receiver.stop();
+            fail("IllegalStateException expected.");
+        }
+        catch (IllegalStateException e) {
+            // No-op
+        }
     }
 
     /**
@@ -73,7 +84,6 @@ public class StreamReceiverTest extends TestCase {
      * @param <V> Value type.
      */
     private static class DataStreamerStub<K, V> implements IgniteDataStreamer<K, V> {
-
         /** {@inheritDoc} */
         @Override public String cacheName() {
             return null;

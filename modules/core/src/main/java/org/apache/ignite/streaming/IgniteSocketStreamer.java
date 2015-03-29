@@ -33,7 +33,7 @@ import java.util.*;
  * @param <K> Cache entry key type.
  * @param <V> Cache entry value type.
  */
-public class IgniteSocketStreamer<E, K, V> extends StreamReceiver<E, K, V> {
+public class IgniteSocketStreamer<E, K, V> extends Receiver<E, K, V> {
     /** Host. */
     private final String host;
 
@@ -63,9 +63,9 @@ public class IgniteSocketStreamer<E, K, V> extends StreamReceiver<E, K, V> {
     }
 
     /** {@inheritDoc} */
-    @Override protected void loadData() {
+    @Override protected void receive() {
         try (Socket sock = new Socket(host, port)) {
-            loadData(sock);
+            receive(sock);
         }
         catch (Exception e) {
             throw new IgniteException(e);
@@ -73,12 +73,12 @@ public class IgniteSocketStreamer<E, K, V> extends StreamReceiver<E, K, V> {
     }
 
     /**
-     * Reads data from socket and loads them into target data stream.
+     * Reads data from socket and adds them into target data stream.
      *
      * @param sock Socket.
      */
     @SuppressWarnings("unchecked")
-    private void loadData(Socket sock) throws IOException {
+    private void receive(Socket sock) throws IOException {
         try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(sock.getInputStream()))) {
             while (!isStopped()) {
                 try {

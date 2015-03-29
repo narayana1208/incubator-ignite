@@ -18,32 +18,39 @@
 package org.apache.ignite.examples.streaming;
 
 import org.apache.ignite.*;
-import org.apache.ignite.examples.*;
-import org.apache.ignite.lang.*;
-import org.apache.ignite.streaming.*;
+import org.apache.ignite.examples.ExampleNodeStartup;
+import org.apache.ignite.examples.ExamplesUtils;
+import org.apache.ignite.examples.streaming.numbers.CacheConfig;
+import org.apache.ignite.examples.streaming.numbers.QueryPopularNumbers;
+import org.apache.ignite.lang.IgniteBiTuple;
+import org.apache.ignite.lang.IgniteClosure;
+import org.apache.ignite.streaming.IgniteSocketStreamer;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Map;
+import java.util.Random;
 
 /**
- * Demonstrates how cache can be populated with data utilizing {@link IgniteSocketStreamer} API.
+ * Stream random numbers into the streaming cache.
+ * To start the example, you should:
+ * <ul>
+ *     <li>Start a few nodes using {@link ExampleNodeStartup} or by starting remote nodes as specified below.</li>
+ *     <li>Start querying popular numbers using {@link QueryPopularNumbers}.</li>
+ *     <li>Start streaming using {@link SocketStreamerExample}.</li>
+ * </ul>
  * <p>
- * Remote nodes should always be started with special configuration file which
- * enables P2P class loading: {@code 'ignite.{sh|bat} examples/config/example-cache.xml'}.
- * <p>
- * Alternatively you can run {@link ExampleNodeStartup} in another JVM which will
- * start node with {@code examples/config/example-cache.xml} configuration.
+ * You should start remote nodes by running {@link ExampleNodeStartup} in another JVM.
  */
 public class SocketStreamerExample {
-    /** Cache name. */
-    private static final String CACHE_NAME = "partitioned";
+    /** Random number generator. */
+    private static final Random RAND = new Random();
 
-    /** Number of entries to load. */
-    private static final int ENTRY_COUNT = 500000;
-
-    /** Heap size required to run this example. */
-    public static final int MIN_MEMORY = 512 * 1024 * 1024;
+    /** Range within which to generate numbers. */
+    private static final int RANGE = 1000;
 
     /** Streaming server host. */
     private static final String HOST = "localhost";
@@ -57,44 +64,38 @@ public class SocketStreamerExample {
      * @param args Command line arguments, none required.
      * @throws IgniteException If example execution failed.
      */
-    public static void main(String[] args) throws IgniteException {
-        ExamplesUtils.checkMinMemory(MIN_MEMORY);
+    public static void main(String[] args) throws IgniteException, InterruptedException {
+        // Mark this cluster member as client.
+        Ignition.setClientMode(true);
 
-        try (Ignite ignite = Ignition.start("examples/config/example-cache.xml")) {
-            System.out.println();
-            System.out.println(">>> Cache data streamer example started.");
+        try (Ignite ignite = Ignition.start("examples/config/example-ignite.xml")) {
+            if (!ExamplesUtils.hasServerNodes(ignite))
+                return;
 
             startServer();
 
-            // Clean up caches on all nodes before run.
-            ignite.cache(CACHE_NAME).clear();
+            // The cache is configured with sliding window holding 1 second of the streaming data.
+            IgniteCache<Integer, Long> stmCache = ignite.getOrCreateCache(CacheConfig.randomNumbersCache());
 
-            System.out.println();
-            System.out.println(">>> Cache clear finished.");
+            try (IgniteDataStreamer<Integer, Long> stmr = ignite.dataStreamer(stmCache.getName())) {
+                // Allow data updates.
+                stmr.allowOverwrite(true);
 
-            long start = System.currentTimeMillis();
-
-            try (IgniteDataStreamer<Integer, String> stmr = ignite.dataStreamer(CACHE_NAME)) {
-                // Configure loader.
-                stmr.perNodeBufferSize(1024);
-                stmr.perNodeParallelOperations(8);
-
-                IgniteClosure<IgniteBiTuple<Integer, String>, Map.Entry<Integer, String>> converter =
-                    new IgniteClosure<IgniteBiTuple<Integer, String>, Map.Entry<Integer, String>>() {
-                        @Override public Map.Entry<Integer, String> apply(IgniteBiTuple<Integer, String> input) {
+                IgniteClosure<IgniteBiTuple<Integer, Long>, Map.Entry<Integer, Long>> converter =
+                    new IgniteClosure<IgniteBiTuple<Integer, Long>, Map.Entry<Integer, Long>>() {
+                        @Override public Map.Entry<Integer, Long> apply(IgniteBiTuple<Integer, Long> input) {
                             return new IgniteBiTuple<>(input.getKey(), input.getValue());
                         }
                     };
 
-                IgniteSocketStreamer<IgniteBiTuple<Integer, String>, Integer, String> sockStmr =
+                IgniteSocketStreamer<IgniteBiTuple<Integer, Long>, Integer, Long> sockStmr =
                     new IgniteSocketStreamer<>(HOST, PORT, stmr, converter);
 
                 sockStmr.start();
+
+                while(true)
+                    Thread.sleep(1000);
             }
-
-            long end = System.currentTimeMillis();
-
-            System.out.println(">>> Loaded " + ENTRY_COUNT + " keys in " + (end - start) + "ms.");
         }
     }
 
@@ -112,8 +113,16 @@ public class SocketStreamerExample {
                      ObjectOutputStream oos =
                          new ObjectOutputStream(new BufferedOutputStream(sock.getOutputStream()))) {
 
-                    for (int i = 0; i < ENTRY_COUNT; i++)
-                        oos.writeObject(new IgniteBiTuple<>(i, Integer.toString(i)));
+                    while(true) {
+                        oos.writeObject(new IgniteBiTuple<>(RAND.nextInt(RANGE), (long) (RAND.nextInt(RANGE) + 1)));
+
+                        try {
+                            Thread.sleep(1);
+                        }
+                        catch (InterruptedException e) {
+                            // No-op.
+                        }
+                    }
                 }
                 catch (IOException e) {
                     // No-op.

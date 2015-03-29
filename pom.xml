@@ -123,20 +123,16 @@
         <module>modules/extdata/p2p</module>
         <module>modules/extdata/uri</module>
         <module>modules/clients</module>
-        <module>examples</module>
         <module>modules/tools</module>
         <module>modules/spring</module>
-        <module>modules/hibernate</module>
         <module>modules/web</module>
         <module>modules/aop</module>
         <module>modules/urideploy</module>
         <module>modules/indexing</module>
-        <module>modules/geospatial</module>
         <module>modules/ssh</module>
         <module>modules/rest-http</module>
         <module>modules/jta</module>
         <module>modules/aws</module>
-        <module>modules/schedule</module>
         <module>modules/log4j</module>
         <module>modules/slf4j</module>
         <module>modules/jcl</module>
@@ -1382,6 +1378,22 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>lgpl</id>
+            <modules>
+                <module>modules/hibernate</module>
+                <module>modules/geospatial</module>
+                <module>modules/schedule</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>examples</id>
+            <modules>
+                <module>examples</module>
+            </modules>
         </profile>
     </profiles>
 </project>

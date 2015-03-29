@@ -25,6 +25,7 @@ import org.apache.ignite.testframework.junits.common.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.atomic.*;
 
 import static org.apache.ignite.cache.CacheMode.*;
 
@@ -63,7 +64,7 @@ public class IgniteSocketStreamerTest extends GridCommonAbstractTest {
     public void testStreamer() throws Exception {
         try (Ignite g = startGrid()) {
 
-            IgniteCache<Integer, String> cache = g.jcache(null);
+            IgniteCache<Integer, String> cache = g.cache(null);
 
             cache.clear();
 
@@ -78,15 +79,29 @@ public class IgniteSocketStreamerTest extends GridCommonAbstractTest {
                         }
                     };
 
+                final AtomicInteger cnt = new AtomicInteger();
+
                 IgniteSocketStreamer<IgniteBiTuple<Integer, String>, Integer, String> sockStmr =
-                    new IgniteSocketStreamer<>(HOST, PORT, stmr, converter);
+                    new IgniteSocketStreamer<IgniteBiTuple<Integer, String>, Integer, String>(
+                            HOST, PORT, stmr, converter
+                    ) {
+                        @Override protected void addData(IgniteBiTuple<Integer, String> element) {
+                            super.addData(element);
 
-                IgniteFuture<Void> fut = sockStmr.start();
+                            cnt.incrementAndGet();
+                        }
+                    };
 
-                fut.get();
+                sockStmr.start();
 
-                assertTrue(fut.isDone());
-                assertFalse(fut.isCancelled());
+                // Wait for all data streamed.
+                while (cnt.get() < ENTRY_CNT)
+                    Thread.sleep(200);
+
+                sockStmr.stop();
+
+                assertFalse(sockStmr.isStarted());
+                assertTrue(sockStmr.isStopped());
             }
 
             assertEquals(ENTRY_CNT, cache.size());

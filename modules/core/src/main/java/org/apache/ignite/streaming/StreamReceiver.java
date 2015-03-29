@@ -18,7 +18,6 @@
 package org.apache.ignite.streaming;
 
 import org.apache.ignite.*;
-import org.apache.ignite.internal.util.future.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
 
@@ -65,18 +64,14 @@ public abstract class StreamReceiver<E, K, V> {
     /**
      * Starts streamer.
      */
-    public IgniteFuture<Void> start() {
+    public void start() {
         synchronized (lock) {
             if (state != State.INITIALIZED)
                 throw new IllegalStateException("Receiver in " + state + " state can't be started.");
 
-            GridFutureAdapter<Void> fut = new GridFutureAdapter<>();
-
-            new Thread(new Receiver(fut)).start();
+            new Thread(new Receiver()).start();
 
             state = State.STARTED;
-
-            return new IgniteFutureImpl<>(fut);
         }
     }
 
@@ -156,35 +151,15 @@ public abstract class StreamReceiver<E, K, V> {
      * Receiver worker that actually receives data from socket.
      */
     private class Receiver implements Runnable {
-        /** Future. */
-        private final GridFutureAdapter<Void> fut;
-
-        /**
-         * @param fut Future.
-         */
-        public Receiver(GridFutureAdapter<Void> fut) {
-            this.fut = fut;
-        }
-
         /** {@inheritDoc} */
         @Override public void run() {
-            Throwable err = null;
-
             try {
                 loadData();
             }
             catch (Throwable e) {
-                err = e;
+                //TODO: restart
             }
             finally {
-                if (state == State.STOPPED)
-                    fut.onCancelled();
-                else {
-                    state = State.STOPPED;
-
-                    fut.onDone(null, err);
-                }
-
                 stopLatch.countDown();
             }
         }

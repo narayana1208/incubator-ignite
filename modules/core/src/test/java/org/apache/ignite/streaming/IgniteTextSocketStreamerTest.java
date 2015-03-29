@@ -8,8 +8,9 @@ import org.apache.ignite.testframework.junits.common.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.atomic.*;
 
-import static org.apache.ignite.cache.CacheMode.PARTITIONED;
+import static org.apache.ignite.cache.CacheMode.*;
 
 /**
  * Test for data loading using {@link IgniteTextSocketStreamer}.
@@ -46,7 +47,7 @@ public class IgniteTextSocketStreamerTest extends GridCommonAbstractTest {
     public void testStream() throws Exception {
         try (Ignite g = startGrid()) {
 
-            IgniteCache<Integer, String> cache = g.jcache(null);
+            IgniteCache<Integer, String> cache = g.cache(null);
 
             cache.clear();
 
@@ -57,20 +58,33 @@ public class IgniteTextSocketStreamerTest extends GridCommonAbstractTest {
                 IgniteClosure<String, Map.Entry<Integer, String>> converter =
                     new IgniteClosure<String, Map.Entry<Integer, String>>() {
                         @Override public Map.Entry<Integer, String> apply(String input) {
-                            String[] pair = input.split("=");
+                            String[] pair = input.split("=", 2);
+
                             return new IgniteBiTuple<>(Integer.parseInt(pair[0]), pair[1]);
                         }
                     };
 
+                final AtomicInteger cnt = new AtomicInteger();
+
                 IgniteTextSocketStreamer<Integer, String> sockStmr =
-                    new IgniteTextSocketStreamer<>(HOST, PORT, stmr, converter);
+                    new IgniteTextSocketStreamer<Integer, String>(HOST, PORT, stmr, converter) {
+                        @Override protected void addData(String element) {
+                            super.addData(element);
 
-                IgniteFuture<Void> fut = sockStmr.start();
+                            cnt.incrementAndGet();
+                        }
+                    };
 
-                fut.get();
+                sockStmr.start();
 
-                assertTrue(fut.isDone());
-                assertFalse(fut.isCancelled());
+                // Wait for all data streamed.
+                while (cnt.get() < ENTRY_CNT)
+                    Thread.sleep(200);
+
+                sockStmr.stop();
+
+                assertFalse(sockStmr.isStarted());
+                assertTrue(sockStmr.isStopped());
             }
 
             assertEquals(ENTRY_CNT, cache.size());

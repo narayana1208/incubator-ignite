@@ -1,8 +1,9 @@
 package org.apache.ignite.streaming;
 
-import junit.framework.TestCase;
 import org.apache.ignite.*;
 import org.apache.ignite.lang.*;
+
+import junit.framework.*;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
@@ -26,7 +27,7 @@ public class StreamReceiverTest extends TestCase {
     private final StreamReceiver<Integer, Integer, String> receiver =
         new StreamReceiver<Integer, Integer, String>(STMR, CONVERTER) {
             @Override protected void loadData() {
-                while (!isStopped() && !terminatedNormally) {
+                while (!isStopped()) {
                     try {
                         Thread.sleep(50);
                     }
@@ -37,89 +38,25 @@ public class StreamReceiverTest extends TestCase {
             }
         };
 
-    /** Terminated normally flag. */
-    private volatile boolean terminatedNormally;
-
-    /**
-     * Tests receiver behavior in case of normal termination.
-     *
-     * @throws Exception If error occurred.
-     */
-    public void testTerminatedNormally() throws Exception {
-        assertEquals(StreamReceiver.State.INITIALIZED, receiver.state());
-        assertFalse(receiver.isStarted());
-        assertFalse(receiver.isStopped());
-
-        IgniteFuture<Void> fut = receiver.start();
-
-        assertEquals(StreamReceiver.State.STARTED, receiver.state());
-
-        assertTrue(receiver.isStarted());
-        assertFalse(receiver.isStopped());
-
-        assertFalse(fut.isDone());
-        assertFalse(fut.isCancelled());
-
-        try {
-            fut.get(500);
-        }
-        catch (IgniteException e) {
-            // No-op.
-        }
-
-        assertEquals(StreamReceiver.State.STARTED, receiver.state());
-        assertTrue(receiver.isStarted());
-        assertFalse(receiver.isStopped());
-
-        assertFalse(fut.isDone());
-        assertFalse(fut.isCancelled());
-
-        terminatedNormally = true;
-
-        fut.get();
-
-        assertEquals(StreamReceiver.State.STOPPED, receiver.state());
-
-        assertFalse(receiver.isStarted());
-        assertTrue(receiver.isStopped());
-
-        assertTrue(fut.isDone());
-        assertFalse(fut.isCancelled());
-    }
-
     /**
      * Tests receiver behavior in case of forced termination.
      *
      * @throws Exception If error occurred.
      */
-    public void testStopped() throws Exception {
+    public void testReceiver() throws Exception {
         assertEquals(StreamReceiver.State.INITIALIZED, receiver.state());
         assertFalse(receiver.isStarted());
         assertFalse(receiver.isStopped());
 
-        IgniteFuture<Void> fut = receiver.start();
+        receiver.start();
 
         assertEquals(StreamReceiver.State.STARTED, receiver.state());
 
         assertTrue(receiver.isStarted());
         assertFalse(receiver.isStopped());
 
-        assertFalse(fut.isDone());
-        assertFalse(fut.isCancelled());
-
-        try {
-            fut.get(500);
-        }
-        catch (IgniteException e) {
-            // No-op.
-        }
-
-        assertEquals(StreamReceiver.State.STARTED, receiver.state());
-        assertTrue(receiver.isStarted());
-        assertFalse(receiver.isStopped());
-
-        assertFalse(fut.isDone());
-        assertFalse(fut.isCancelled());
+        // Wait for some period before stop.
+        Thread.sleep(500);
 
         receiver.stop();
 
@@ -127,9 +64,6 @@ public class StreamReceiverTest extends TestCase {
 
         assertFalse(receiver.isStarted());
         assertTrue(receiver.isStopped());
-
-        assertTrue(fut.isDone());
-        assertTrue(fut.isCancelled());
     }
 
     /**
@@ -206,7 +140,7 @@ public class StreamReceiverTest extends TestCase {
         }
 
         /** {@inheritDoc} */
-        @Override public void updater(Updater<K, V> updater) {
+        @Override public void receiver(org.apache.ignite.stream.StreamReceiver<K, V> rcvr) {
             // No-op.
         }
 

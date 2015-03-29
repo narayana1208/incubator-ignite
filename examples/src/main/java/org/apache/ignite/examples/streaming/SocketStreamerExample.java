@@ -19,7 +19,6 @@ package org.apache.ignite.examples.streaming;
 
 import org.apache.ignite.*;
 import org.apache.ignite.examples.*;
-import org.apache.ignite.examples.datagrid.*;
 import org.apache.ignite.lang.*;
 import org.apache.ignite.streaming.*;
 
@@ -33,7 +32,7 @@ import java.util.*;
  * Remote nodes should always be started with special configuration file which
  * enables P2P class loading: {@code 'ignite.{sh|bat} examples/config/example-cache.xml'}.
  * <p>
- * Alternatively you can run {@link CacheNodeStartup} in another JVM which will
+ * Alternatively you can run {@link ExampleNodeStartup} in another JVM which will
  * start node with {@code examples/config/example-cache.xml} configuration.
  */
 public class SocketStreamerExample {
@@ -68,7 +67,7 @@ public class SocketStreamerExample {
             startServer();
 
             // Clean up caches on all nodes before run.
-            ignite.jcache(CACHE_NAME).clear();
+            ignite.cache(CACHE_NAME).clear();
 
             System.out.println();
             System.out.println(">>> Cache clear finished.");
@@ -90,9 +89,7 @@ public class SocketStreamerExample {
                 IgniteSocketStreamer<IgniteBiTuple<Integer, String>, Integer, String> sockStmr =
                     new IgniteSocketStreamer<>(HOST, PORT, stmr, converter);
 
-                IgniteFuture<Void> fut = sockStmr.start();
-
-                fut.get();
+                sockStmr.start();
             }
 
             long end = System.currentTimeMillis();

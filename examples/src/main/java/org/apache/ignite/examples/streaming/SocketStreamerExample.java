@@ -18,24 +18,19 @@
 package org.apache.ignite.examples.streaming;
 
 import org.apache.ignite.*;
-import org.apache.ignite.examples.ExampleNodeStartup;
-import org.apache.ignite.examples.ExamplesUtils;
-import org.apache.ignite.examples.streaming.numbers.CacheConfig;
-import org.apache.ignite.examples.streaming.numbers.QueryPopularNumbers;
-import org.apache.ignite.lang.IgniteBiTuple;
-import org.apache.ignite.lang.IgniteClosure;
-import org.apache.ignite.streaming.IgniteSocketStreamer;
+import org.apache.ignite.examples.*;
+import org.apache.ignite.examples.streaming.numbers.*;
+import org.apache.ignite.lang.*;
+import org.apache.ignite.stream.*;
+import org.apache.ignite.streaming.*;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Map;
-import java.util.Random;
+import javax.cache.processor.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
 /**
- * Stream random numbers into the streaming cache.
+ * Stream random numbers into the streaming cache using {@link IgniteSocketStreamer}.
  * To start the example, you should:
  * <ul>
  *     <li>Start a few nodes using {@link ExampleNodeStartup} or by starting remote nodes as specified below.</li>
@@ -81,6 +76,18 @@ public class SocketStreamerExample {
                 // Allow data updates.
                 stmr.allowOverwrite(true);
 
+                // Configure data transformation to count instances of the same word.
+                stmr.receiver(new StreamTransformer<Integer, Long>() {
+                    @Override public Object process(MutableEntry<Integer, Long> e, Object... objects)
+                        throws EntryProcessorException {
+                        Long val = e.getValue();
+
+                        e.setValue(val == null ? 1L : val + 1);
+
+                        return null;
+                    }
+                });
+
                 IgniteClosure<IgniteBiTuple<Integer, Long>, Map.Entry<Integer, Long>> converter =
                     new IgniteClosure<IgniteBiTuple<Integer, Long>, Map.Entry<Integer, Long>>() {
                         @Override public Map.Entry<Integer, Long> apply(IgniteBiTuple<Integer, Long> input) {
@@ -113,16 +120,8 @@ public class SocketStreamerExample {
                      ObjectOutputStream oos =
                          new ObjectOutputStream(new BufferedOutputStream(sock.getOutputStream()))) {
 
-                    while(true) {
-                        oos.writeObject(new IgniteBiTuple<>(RAND.nextInt(RANGE), (long) (RAND.nextInt(RANGE) + 1)));
-
-                        try {
-                            Thread.sleep(1);
-                        }
-                        catch (InterruptedException e) {
-                            // No-op.
-                        }
-                    }
+                    while(true)
+                        oos.writeObject(new IgniteBiTuple<>(RAND.nextInt(RANGE), 1L));
                 }
                 catch (IOException e) {
                     // No-op.

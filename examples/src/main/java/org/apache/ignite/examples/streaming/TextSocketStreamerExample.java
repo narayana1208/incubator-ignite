@@ -18,24 +18,19 @@
 package org.apache.ignite.examples.streaming;
 
 import org.apache.ignite.*;
-import org.apache.ignite.examples.ExampleNodeStartup;
-import org.apache.ignite.examples.ExamplesUtils;
-import org.apache.ignite.examples.streaming.numbers.CacheConfig;
-import org.apache.ignite.examples.streaming.numbers.QueryPopularNumbers;
-import org.apache.ignite.lang.IgniteBiTuple;
-import org.apache.ignite.lang.IgniteClosure;
-import org.apache.ignite.streaming.IgniteTextSocketStreamer;
+import org.apache.ignite.examples.*;
+import org.apache.ignite.examples.streaming.numbers.*;
+import org.apache.ignite.lang.*;
+import org.apache.ignite.stream.*;
+import org.apache.ignite.streaming.*;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Map;
-import java.util.Random;
+import javax.cache.processor.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
 /**
- * Stream random numbers into the streaming cache.
+ * Stream random numbers into the streaming cache using {@link IgniteTextSocketStreamer}.
  * To start the example, you should:
  * <ul>
  *     <li>Start a few nodes using {@link ExampleNodeStartup} or by starting remote nodes as specified below.</li>
@@ -65,6 +60,9 @@ public class TextSocketStreamerExample {
      * @throws IgniteException If example execution failed.
      */
     public static void main(String[] args) throws IgniteException, InterruptedException {
+        // Mark this cluster member as client.
+        Ignition.setClientMode(true);
+
         try (Ignite ignite = Ignition.start("examples/config/example-ignite.xml")) {
             if (!ExamplesUtils.hasServerNodes(ignite))
                 return;
@@ -77,6 +75,18 @@ public class TextSocketStreamerExample {
             try (IgniteDataStreamer<Integer, Long> stmr = ignite.dataStreamer(stmCache.getName())) {
                 // Allow data updates.
                 stmr.allowOverwrite(true);
+
+                // Configure data transformation to count instances of the same word.
+                stmr.receiver(new StreamTransformer<Integer, Long>() {
+                    @Override public Object process(MutableEntry<Integer, Long> e, Object... objects)
+                        throws EntryProcessorException {
+                        Long val = e.getValue();
+
+                        e.setValue(val == null ? 1L : val + 1);
+
+                        return null;
+                    }
+                });
 
                 IgniteClosure<String, Map.Entry<Integer, Long>> converter =
                     new IgniteClosure<String, Map.Entry<Integer, Long>>() {
@@ -113,20 +123,9 @@ public class TextSocketStreamerExample {
 
 
                     while(true) {
-                        int key = RAND.nextInt(RANGE);
-
-                        int value = RAND.nextInt(RANGE) + 1;
-
-                        writer.write(Integer.toString(key) + '=' + Integer.toString(value));
+                        writer.write(Integer.toString(RAND.nextInt(RANGE)) + "=1");
 
                         writer.newLine();
-
-                        try {
-                            Thread.sleep(1);
-                        }
-                        catch (InterruptedException e) {
-                            // No-op.
-                        }
                     }
                 }
                 catch (IOException e) {

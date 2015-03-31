@@ -787,7 +787,7 @@
                                         </group>
                                         <group>
                                             <title>Streaming APIs</title>
-                                            <packages>org.apache.ignite.streamer:org.apache.ignite.streamer.router:org.apache.ignite.streamer.window:org.apache.ignite.streamer.index:org.apache.ignite.streamer.index.hash:org.apache.ignite.streamer.index.tree:org.apache.ignite.stream:org.apache.ignite.streaming</packages>
+                                            <packages>org.apache.ignite.streamer:org.apache.ignite.streamer.router:org.apache.ignite.streamer.window:org.apache.ignite.streamer.index:org.apache.ignite.streamer.index.hash:org.apache.ignite.streamer.index.tree:org.apache.ignite.stream:org.apache.ignite.stream.socket</packages>
                                         </group>
                                         <group>
                                             <title>Security APIs</title>
@@ -982,7 +982,7 @@
                                         </group>
                                         <group>
                                             <title>Streaming APIs</title>
-                                            <packages>org.apache.ignite.streamer:org.apache.ignite.streamer.router:org.apache.ignite.streamer.window:org.apache.ignite.streamer.index:org.apache.ignite.streamer.index.hash:org.apache.ignite.streamer.index.tree:org.apache.ignite.stream:org.apache.ignite.streaming</packages>
+                                            <packages>org.apache.ignite.streamer:org.apache.ignite.streamer.router:org.apache.ignite.streamer.window:org.apache.ignite.streamer.index:org.apache.ignite.streamer.index.hash:org.apache.ignite.streamer.index.tree:org.apache.ignite.stream:org.apache.ignite.stream.socket</packages>
                                         </group>
                                         <group>
                                             <title>Security APIs</title>

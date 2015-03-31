@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.streaming;
+package org.apache.ignite.stream.socket;
 
 import org.apache.ignite.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
 
 import java.util.*;
-import java.util.concurrent.*;
 
 /**
  * Base implementation of data receiver.
@@ -35,8 +34,8 @@ public abstract class Receiver<E, K, V> {
     /** Object monitor. */
     private final Object lock = new Object();
 
-    /** Stop latch. */
-    private final CountDownLatch stopLatch = new CountDownLatch(1);
+    /** Worker. */
+    private Thread worker;
 
     /** State. */
     private volatile State state = State.INITIALIZED;
@@ -83,7 +82,9 @@ public abstract class Receiver<E, K, V> {
             if (state != State.INITIALIZED)
                 throw new IllegalStateException("Receiver in " + state + " state can't be started.");
 
-            new Thread(new ReceiverWorker()).start();
+            worker = new Thread(new ReceiverWorker());
+
+            worker.start();
 
             state = State.STARTED;
         }
@@ -98,13 +99,13 @@ public abstract class Receiver<E, K, V> {
                 throw new IllegalStateException("Receiver in " + state + " state can't be stopped.");
 
             state = State.STOPPED;
+        }
 
-            try {
-                stopLatch.await();
-            }
-            catch (InterruptedException e) {
-                // No-op.
-            }
+        try {
+            worker.join();
+        }
+        catch (InterruptedException e) {
+            // No-op.
         }
     }
 
@@ -162,15 +163,12 @@ public abstract class Receiver<E, K, V> {
                 try {
                     receive();
                 }
-                catch (Throwable e) {
+                catch (Exception e) {
                     // No-op.
                 }
 
-                if (isStopped()) {
-                    stopLatch.countDown();
-
-                    break;
-                }
+                if (isStopped())
+                    return;
 
                 try {
                     Thread.sleep(restartInterval);

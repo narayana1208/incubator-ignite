@@ -22,7 +22,7 @@ import org.apache.ignite.examples.*;
 import org.apache.ignite.examples.streaming.numbers.*;
 import org.apache.ignite.lang.*;
 import org.apache.ignite.stream.*;
-import org.apache.ignite.streaming.*;
+import org.apache.ignite.stream.socket.*;
 
 import javax.cache.processor.*;
 import java.io.*;

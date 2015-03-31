@@ -16,6 +16,6 @@
  */
 
 /**
- * Contains Ignite streaming classes.
+ * Contains Ignite socket streaming classes.
  */
-package org.apache.ignite.streaming;
+package org.apache.ignite.stream.socket;

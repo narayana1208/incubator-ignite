@@ -1,8 +1,7 @@
-package org.apache.ignite.streaming;
+package org.apache.ignite.stream.socket;
 
 import org.apache.ignite.*;
 import org.apache.ignite.lang.*;
-
 import junit.framework.*;
 import org.jetbrains.annotations.*;
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.streaming;
+package org.apache.ignite.stream.socket;
 
 import org.apache.ignite.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
@@ -26,14 +26,13 @@ import java.net.*;
 import java.util.*;
 
 /**
- * Data streamer is responsible for streaming data from socket into cache. Every object obtained from socket converts
- * to key-value pair using converter.
+ * Data streamer is responsible for streaming data from socket into cache. Every object obtained from socket treats as
+ * {@link String} instance and converts to key-value pair using converter.
  *
- * @param <E> Type of element obtained from socket.
  * @param <K> Cache entry key type.
  * @param <V> Cache entry value type.
  */
-public class IgniteSocketStreamer<E, K, V> extends Receiver<E, K, V> {
+public class IgniteTextSocketStreamer<K, V> extends Receiver<String, K, V> {
     /** Host. */
     private final String host;
 
@@ -41,18 +40,18 @@ public class IgniteSocketStreamer<E, K, V> extends Receiver<E, K, V> {
     private final int port;
 
     /**
-     * Constructs socket streamer.
+     * Constructs text socket streamer.
      *
      * @param host Host.
      * @param port Port.
      * @param streamer Streamer.
-     * @param converter Stream to entry converter.
+     * @param converter Stream to entries converter.
      */
-    public IgniteSocketStreamer(
+    public IgniteTextSocketStreamer(
         String host,
         int port,
         IgniteDataStreamer<K, V> streamer,
-        IgniteClosure<E, Map.Entry<K, V>> converter
+        IgniteClosure<String, Map.Entry<K, V>> converter
     ) {
         super(streamer, converter);
 
@@ -65,34 +64,20 @@ public class IgniteSocketStreamer<E, K, V> extends Receiver<E, K, V> {
     /** {@inheritDoc} */
     @Override protected void receive() {
         try (Socket sock = new Socket(host, port)) {
-            receive(sock);
+            loadData(sock);
         }
         catch (Exception e) {
             throw new IgniteException(e);
         }
     }
 
-    /**
-     * Reads data from socket and adds them into target data stream.
-     *
-     * @param sock Socket.
-     */
-    @SuppressWarnings("unchecked")
-    private void receive(Socket sock) throws IOException {
-        try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(sock.getInputStream()))) {
-            while (!isStopped()) {
-                try {
-                    E element = (E) ois.readObject();
+    /** {@inheritDoc} */
+    private void loadData(Socket sock) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream(), "UTF-8"))) {
+            String val;
 
-                    addData(element);
-                }
-                catch (EOFException e) {
-                    break;
-                }
-                catch (IOException | ClassNotFoundException e) {
-                    throw new IgniteException(e);
-                }
-            }
+            while (!isStopped() && (val = reader.readLine()) != null)
+                addData(val);
         }
     }
 }

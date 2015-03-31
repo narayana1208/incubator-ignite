@@ -1,8 +1,9 @@
-package org.apache.ignite.streaming;
+package org.apache.ignite.stream.socket;
 
 import org.apache.ignite.*;
 import org.apache.ignite.configuration.*;
 import org.apache.ignite.lang.*;
+import org.apache.ignite.stream.socket.*;
 import org.apache.ignite.testframework.junits.common.*;
 
 import java.io.*;

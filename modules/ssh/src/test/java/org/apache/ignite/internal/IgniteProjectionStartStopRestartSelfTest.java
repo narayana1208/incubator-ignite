@@ -193,6 +193,24 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
             }
         });
 
+        joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
+
+        log.info(">>>>> File name=" + StartNodeCallableImpl.fName);
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(StartNodeCallableImpl.fName));
+
+            String st = "";
+
+            for (String line; (line = reader.readLine()) != null;)
+                st += line;
+
+            log.info(">>>>> File content:\n" + st);
+        }
+        catch (Throwable e) {
+            e.printStackTrace();
+        }
+
         assert joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
 
         assert joinedCnt.get() == 1;
@@ -479,24 +497,6 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
                     throw new IgniteException(t.getError());
             }
         });
-
-        joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
-
-        log.info(">>>>> File name=" + IgniteNodeCallableImpl.fName);
-
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(IgniteNodeCallableImpl.fName));
-
-            String st = "";
-
-            for (String line; (line = reader.readLine()) != null;)
-                st += line;
-
-            log.info(">>>>> File content:\n" + st);
-        }
-        catch (Throwable e) {
-            e.printStackTrace();
-        }
 
         assert joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
 

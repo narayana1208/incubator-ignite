@@ -208,7 +208,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
             log.info(">>>>> File content:\n" + st);
         }
         catch (Throwable e) {
-            e.printStackTrace();
+            log.error(">>>>> Error:", e);
         }
 
         assert joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);

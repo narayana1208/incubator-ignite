@@ -57,6 +57,8 @@ public class IgniteNodeCallableImpl implements IgniteNodeCallable {
     @LoggerResource
     private IgniteLogger log;
 
+    public static String fName;
+
     /**
      * Required by Externalizable.
      */
@@ -124,8 +126,6 @@ public class IgniteNodeCallableImpl implements IgniteNodeCallable {
             String scriptOutputFileName = FILE_NAME_DATE_FORMAT.format(new Date()) + '-'
                 + UUID.randomUUID().toString().substring(0, 8) + ".log";
 
-            String fName = "";
-            
             if (win)
                 throw new UnsupportedOperationException("Apache Ignite cannot be auto-started on Windows from IgniteCluster.startNodes(…) API.");
             else { // Assume Unix.
@@ -162,23 +162,6 @@ public class IgniteNodeCallableImpl implements IgniteNodeCallable {
             shell(ses, startNodeCmd);
             
             log.info(">>>>> Shelled");
-            
-            
-            log.info(">>>>> File name=" + fName);
-
-            try {
-                BufferedReader reader = new BufferedReader(new FileReader(fName));
-                
-                String st = "";
-                
-                for (String line; (line = reader.readLine()) != null;)
-                    st += line;
-                
-                log.info(">>>>> File content:\n" + st);
-            }
-            catch (Throwable e) {
-                e.printStackTrace();
-            }
 
             return new GridTuple3<>(spec.host(), true, null);
         }

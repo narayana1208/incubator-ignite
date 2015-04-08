@@ -205,7 +205,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStartThreeNodes() throws Exception {
+    public void _testStartThreeNodes() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -235,7 +235,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStartThreeNodesAndDoEmptyCall() throws Exception {
+    public void _testStartThreeNodesAndDoEmptyCall() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -276,7 +276,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStartThreeNodesAndTryToStartOneNode() throws Exception {
+    public void _testStartThreeNodesAndTryToStartOneNode() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -317,7 +317,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStartFiveNodesInTwoCalls() throws Exception {
+    public void _testStartFiveNodesInTwoCalls() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -371,7 +371,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStartFiveWithTwoSpecs() throws Exception {
+    public void _testStartFiveWithTwoSpecs() throws Exception {
         joinedLatch = new CountDownLatch(5);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -402,7 +402,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStartThreeNodesAndRestart() throws Exception {
+    public void _testStartThreeNodesAndRestart() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -458,7 +458,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testCustomScript() throws Exception {
+    public void _testCustomScript() throws Exception {
         joinedLatch = new CountDownLatch(1);
 
         String script = U.isWindows() ? CUSTOM_SCRIPT_WIN : CUSTOM_SCRIPT_LINUX;
@@ -481,6 +481,24 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
             }
         });
 
+        joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
+
+        log.info(">>>>> File name=" + IgniteNodeCallableImpl.fName);
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(IgniteNodeCallableImpl.fName));
+
+            String st = "";
+
+            for (String line; (line = reader.readLine()) != null;)
+                st += line;
+
+            log.info(">>>>> File content:\n" + st);
+        }
+        catch (Throwable e) {
+            e.printStackTrace();
+        }
+
         assert joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
 
         assert joinedCnt.get() == 1;
@@ -494,7 +512,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStopNodes() throws Exception {
+    public void _testStopNodes() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -529,7 +547,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStopNodesFiltered() throws Exception {
+    public void _testStopNodesFiltered() throws Exception {
         joinedLatch = new CountDownLatch(2);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -592,7 +610,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStopNodeById() throws Exception {
+    public void _testStopNodeById() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -627,7 +645,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStopNodesByIds() throws Exception {
+    public void _testStopNodesByIds() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -669,7 +687,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testStopNodesByIdsC() throws Exception {
+    public void _testStopNodesByIdsC() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -706,7 +724,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testRestartNodes() throws Exception {
+    public void _testRestartNodes() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -743,7 +761,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testRestartNodesFiltered() throws Exception {
+    public void _testRestartNodesFiltered() throws Exception {
         joinedLatch = new CountDownLatch(2);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -809,7 +827,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testRestartNodeById() throws Exception {
+    public void _testRestartNodeById() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -846,7 +864,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testRestartNodesByIds() throws Exception {
+    public void _testRestartNodesByIds() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =
@@ -885,7 +903,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /**
      * @throws Exception If failed.
      */
-    public void testRestartNodesByIdsC() throws Exception {
+    public void _testRestartNodesByIdsC() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
         Collection<GridTuple3<String, Boolean, String>> res =

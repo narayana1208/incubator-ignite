@@ -20,7 +20,6 @@ package org.apache.ignite.internal;
 import org.apache.ignite.*;
 import org.apache.ignite.cluster.*;
 import org.apache.ignite.events.*;
-import org.apache.ignite.internal.util.lang.*;
 import org.apache.ignite.internal.util.nodestart.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
@@ -178,19 +177,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void testStartOneNode() throws Exception {
         joinedLatch = new CountDownLatch(1);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 1, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 1;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -208,19 +207,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStartThreeNodes() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, DFLT_TIMEOUT, 1);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -238,19 +237,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStartThreeNodesAndDoEmptyCall() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -279,19 +278,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStartThreeNodesAndTryToStartOneNode() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -320,19 +319,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStartFiveNodesInTwoCalls() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -351,12 +350,12 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
 
         assert res.size() == 2;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -374,7 +373,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStartFiveWithTwoSpecs() throws Exception {
         joinedLatch = new CountDownLatch(5);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 F.asList(map(HOST, SSH_UNAME, pwd, key, 2, U.getIgniteHome(), CFG_NO_ATTR, null),
                     map(HOST, SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null)),
@@ -382,12 +381,12 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
 
         assert res.size() == 5;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -405,19 +404,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStartThreeNodesAndRestart() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -437,12 +436,12 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -465,19 +464,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
 
         script = Paths.get(U.getIgniteHome()).relativize(U.resolveIgnitePath(script).toPath()).toString();
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 1, U.getIgniteHome(), null, script),
                 null, false, 0, 16);
 
         assert res.size() == 1;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -515,19 +514,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStopNodes() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, null, 3, U.getIgniteHome(), CFG_NO_ATTR,
                 null), null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -550,19 +549,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStopNodesFiltered() throws Exception {
         joinedLatch = new CountDownLatch(2);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 2, U.getIgniteHome(), CFG_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 2;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -576,12 +575,12 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
 
         assert res.size() == 1;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -613,19 +612,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStopNodeById() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -648,19 +647,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStopNodesByIds() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -690,19 +689,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testStopNodesByIdsC() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -727,19 +726,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testRestartNodes() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -764,19 +763,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testRestartNodesFiltered() throws Exception {
         joinedLatch = new CountDownLatch(2);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 2, U.getIgniteHome(), CFG_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 2;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -790,12 +789,12 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
 
         assert res.size() == 1;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -830,19 +829,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testRestartNodeById() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -867,19 +866,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testRestartNodesByIds() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -906,19 +905,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     public void _testRestartNodesByIdsC() throws Exception {
         joinedLatch = new CountDownLatch(3);
 
-        Collection<GridTuple3<String, Boolean, String>> res =
+        Collection<ClusterStartNodeResult> res =
             startNodes(ignite.cluster(),
                 maps(Collections.singleton(HOST), SSH_UNAME, pwd, key, 3, U.getIgniteHome(), CFG_NO_ATTR, null),
                 null, false, 0, 16);
 
         assert res.size() == 3;
 
-        F.forEach(res, new CI1<GridTuple3<String, Boolean, String>>() {
-            @Override public void apply(GridTuple3<String, Boolean, String> t) {
-                assert t.get1().equals(HOST);
+        F.forEach(res, new CI1<ClusterStartNodeResult>() {
+            @Override public void apply(ClusterStartNodeResult t) {
+                assert t.getHostName().equals(HOST);
 
-                if (!t.get2())
-                    throw new IgniteException(t.get3());
+                if (!t.isSuccess())
+                    throw new IgniteException(t.getError());
             }
         });
 
@@ -1034,7 +1033,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
      * @param maxConn Maximum connections.
      * @return Results collection.
      */
-    private Collection<GridTuple3<String, Boolean, String>> startNodes(IgniteCluster cluster,
+    private Collection<ClusterStartNodeResult> startNodes(IgniteCluster cluster,
         Collection<Map<String, Object>> hosts,
         @Nullable Map<String, Object> dflts,
         boolean restart,
@@ -1044,6 +1043,6 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
 
         assertNull(cluster.startNodes(hosts, dflts, restart, timeout, maxConn));
 
-        return cluster.<Collection<GridTuple3<String, Boolean, String>>>future().get(WAIT_TIMEOUT);
+        return cluster.<Collection<ClusterStartNodeResult>>future().get(WAIT_TIMEOUT);
     }
 }

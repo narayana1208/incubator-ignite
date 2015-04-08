@@ -124,6 +124,8 @@ public class IgniteNodeCallableImpl implements IgniteNodeCallable {
             String scriptOutputFileName = FILE_NAME_DATE_FORMAT.format(new Date()) + '-'
                 + UUID.randomUUID().toString().substring(0, 8) + ".log";
 
+            String fName = "";
+            
             if (win)
                 throw new UnsupportedOperationException("Apache Ignite cannot be auto-started on Windows from IgniteCluster.startNodes(…) API.");
             else { // Assume Unix.
@@ -143,21 +145,40 @@ public class IgniteNodeCallableImpl implements IgniteNodeCallable {
 
                     igniteHome = igniteHome.replaceFirst("~", homeDir);
                 }
+                
+                fName = igniteHome + "/" + scriptOutputFileName;
 
                 startNodeCmd = new SB().
                     // Console output is consumed, started nodes must use Ignite file appenders for log.
                         a("nohup ").
                     a("\"").a(igniteHome).a('/').a(scriptPath).a("\"").
                     a(" ").a(scriptArgs).
-                    a(!cfg.isEmpty() ? " \"" : "").a(cfg).a(!cfg.isEmpty() ? "\"" : "").
-                    a(rmtLogArgs).
-                    a(" > ").a(scriptOutputDir).a("/").a(scriptOutputFileName).a(" 2>& 1 &").
+                    a(!cfg.isEmpty() ? " \"" : "").a(cfg).a(!cfg.isEmpty() ? "\"" : "").a(rmtLogArgs).a(" > ").a(fName).a(" 2>& 1 &").
                     toString();
             }
 
             info("Starting remote node with SSH command: " + startNodeCmd, spec.logger(), log);
 
             shell(ses, startNodeCmd);
+            
+            log.info(">>>>> Shelled");
+            
+            
+            log.info(">>>>> File name=" + fName);
+
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(fName));
+                
+                String st = "";
+                
+                for (String line; (line = reader.readLine()) != null;)
+                    st += line;
+                
+                log.info(">>>>> File content:\n" + st);
+            }
+            catch (Throwable e) {
+                e.printStackTrace();
+            }
 
             return new GridTuple3<>(spec.host(), true, null);
         }
@@ -184,21 +205,34 @@ public class IgniteNodeCallableImpl implements IgniteNodeCallable {
      */
     private void shell(Session ses, String cmd) throws JSchException, IOException, IgniteInterruptedCheckedException {
         ChannelShell ch = null;
+        
+        log.info(">>>>> Shell. ses=" + ses + ", cmd=" + cmd);
 
         try {
             ch = (ChannelShell)ses.openChannel("shell");
 
             ch.connect();
 
+            log.info(">>>>> Shell. Connected");
+
             try (PrintStream out = new PrintStream(ch.getOutputStream(), true)) {
+                log.info(">>>>> Shell. Printing to out");                
+                
                 out.println(cmd);
+
+                log.info(">>>>> Shell. Printed");
 
                 U.sleep(1000);
             }
         }
         finally {
-            if (ch != null && ch.isConnected())
+            if (ch != null && ch.isConnected()) {
+                log.info(">>>>> Shell. Disconnecting");                
+                
                 ch.disconnect();
+
+                log.info(">>>>> Shell. Disconnected");
+            }
         }
     }
 

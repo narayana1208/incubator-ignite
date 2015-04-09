@@ -71,7 +71,7 @@ public class GridIoMessageFactory implements MessageFactory {
 
         switch (type) {
             case TcpCommunicationSpi.NODE_ID_MSG_TYPE:
-                msg = new TcpCommunicationSpi.NodeIdMessage();
+                msg = new NodeIdMessage();
 
                 break;
 

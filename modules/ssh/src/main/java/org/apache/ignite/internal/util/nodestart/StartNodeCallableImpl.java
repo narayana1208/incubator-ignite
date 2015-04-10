@@ -94,8 +94,13 @@ public class StartNodeCallableImpl implements StartNodeCallable {
         Session ses = null;
 
         try {
-            if (spec.key() != null)
+            log.info(">>>>> spec.key()=" + spec.key());
+            
+            if (spec.key() != null) {
                 ssh.addIdentity(spec.key().getAbsolutePath());
+                
+                log.info(">>>>> spec.key().getAbsolutePath()=" + spec.key().getAbsolutePath());
+            }
 
             log.info(">>>>> spec.username()=" + spec.username()  +" , spec.host()=" +spec.host()+" , spec.port()="+spec.port());
             
@@ -109,7 +114,7 @@ public class StartNodeCallableImpl implements StartNodeCallable {
             ses.connect(timeout);
             
             log.info(">>>>> timeout=" + timeout);
-            
+
             log.info(">>>>> ses.isConnected()" + ses.isConnected());
 
             boolean win = isWindows(ses);
@@ -181,7 +186,7 @@ public class StartNodeCallableImpl implements StartNodeCallable {
             shell(ses, "nohup --help  > " + fileNameNohupHelp + " 2>& 1 &", log);
 
             shell(ses, startNodeCmd, log);
-            
+
             log.info(">>>>> Shelled");
 
             return new ClusterStartNodeResultImpl(spec.host(), true, null);

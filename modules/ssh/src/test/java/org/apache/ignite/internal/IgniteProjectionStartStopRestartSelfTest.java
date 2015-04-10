@@ -238,7 +238,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
         log.info(">>>>> File name=" + fName);
 
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(StartNodeCallableImpl.fileNameMain));
+            BufferedReader reader = new BufferedReader(new FileReader(fName));
 
             String st = "";
 

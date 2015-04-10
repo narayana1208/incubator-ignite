@@ -58,8 +58,11 @@ public class StartNodeCallableImpl implements StartNodeCallable {
     @LoggerResource
     private IgniteLogger log;
 
-    public static String nohupHelpName;
-    public static String fName;
+    public static String fileNameLs;
+    public static String fileNameNohupHelp;
+    public static String fileNameMain;
+    public static String fileNameMkdir1;
+    public static String fileNameMkdir2;
 
     /**
      * Required by Externalizable.
@@ -139,7 +142,11 @@ public class StartNodeCallableImpl implements StartNodeCallable {
                 String tmpDir = env(ses, "$TMPDIR", "/tmp/");
                 String scriptOutputDir = tmpDir + "ignite-startNodes";
 
-                shell(ses, "mkdir " + scriptOutputDir);
+                fileNameMkdir1 = igniteHome + "/log_mkdir1.txt";
+                fileNameMkdir2 = igniteHome + "/log_mkdir2.txt";
+
+                shell(ses, "mkdir " + scriptOutputDir + " > " +  fileNameMkdir1 + " 2>& 1 &");
+                shell(ses, "mkdir " + scriptOutputDir + " > " +  fileNameMkdir2 + " 2>& 1 &");
 
                 // Mac os don't support ~ in double quotes. Trying get home path from remote system.
                 if (igniteHome.startsWith("~")) {
@@ -148,21 +155,24 @@ public class StartNodeCallableImpl implements StartNodeCallable {
                     igniteHome = igniteHome.replaceFirst("~", homeDir);
                 }
                 
-                fName = igniteHome + "/log1.txt";
-                nohupHelpName = igniteHome + "/log_nohup_help.txt";
+                fileNameMain = igniteHome + "/log1.txt";
+                fileNameNohupHelp = igniteHome + "/log_nohup_help.txt";
+                fileNameNohupHelp = igniteHome + "/log_ls.txt";
 
                 startNodeCmd = new SB().
                     // Console output is consumed, started nodes must use Ignite file appenders for log.
                         a("nohup ").
                     a("\"").a(igniteHome).a('/').a(scriptPath).a("\"").
                     a(" ").a(scriptArgs).
-                    a(!cfg.isEmpty() ? " \"" : "").a(cfg).a(!cfg.isEmpty() ? "\"" : "").a(rmtLogArgs).a(" > ").a(fName).a(" 2>& 1 &").
+                    a(!cfg.isEmpty() ? " \"" : "").a(cfg).a(!cfg.isEmpty() ? "\"" : "").a(rmtLogArgs).a(" > ").a(fileNameMain).a(" 2>& 1 &").
                     toString();
             }
 
             info("Starting remote node with SSH command: " + startNodeCmd, spec.logger(), log);
 
-            shell(ses, "nohup --help  > " + nohupHelpName + " 2>& 1 &");
+            shell(ses, "ls  > " + fileNameLs + " 2>& 1 &");
+            
+            shell(ses, "nohup --help  > " + fileNameNohupHelp + " 2>& 1 &");
 
             shell(ses, startNodeCmd);
             

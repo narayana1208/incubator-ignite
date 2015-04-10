@@ -193,10 +193,13 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
             }
         });
 
-        joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
+        joinedLatch.await(60, SECONDS);
 
-        printFile(StartNodeCallableImpl.nohupHelpName);
-        printFile(StartNodeCallableImpl.fName);
+        printFile(StartNodeCallableImpl.fileNameMkdir1);
+        printFile(StartNodeCallableImpl.fileNameMkdir2);
+        printFile(StartNodeCallableImpl.fileNameLs);
+        printFile(StartNodeCallableImpl.fileNameNohupHelp);
+        printFile(StartNodeCallableImpl.fileNameMain);
 
         assert joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
 
@@ -210,7 +213,7 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
         log.info(">>>>> File name=" + fName);
 
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(StartNodeCallableImpl.fName));
+            BufferedReader reader = new BufferedReader(new FileReader(StartNodeCallableImpl.fileNameMain));
 
             String st = "";
 

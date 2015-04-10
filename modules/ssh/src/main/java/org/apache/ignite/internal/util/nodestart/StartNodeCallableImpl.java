@@ -147,8 +147,7 @@ public class StartNodeCallableImpl implements StartNodeCallable {
                     igniteHome = igniteHome.replaceFirst("~", homeDir);
                 }
                 
-//                fName = igniteHome + "/" + scriptOutputFileName;
-                fName = scriptOutputDir + "/" + scriptOutputFileName;
+                fName = igniteHome + "/NOTICE.txt";
 
                 startNodeCmd = new SB().
                     // Console output is consumed, started nodes must use Ignite file appenders for log.

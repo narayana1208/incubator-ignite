@@ -170,7 +170,7 @@ public class StartNodeCallableImpl implements StartNodeCallable {
                 
                 fileNameMain = igniteHome + "/log1.txt";
                 fileNameNohupHelp = igniteHome + "/log_nohup_help.txt";
-                fileNameNohupHelp = igniteHome + "/log_ls.txt";
+                fileNameLs = igniteHome + "/log_ls.txt";
 
                 startNodeCmd = new SB().
                     // Console output is consumed, started nodes must use Ignite file appenders for log.

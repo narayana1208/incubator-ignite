@@ -106,6 +106,8 @@ public class StartNodeCallableImpl implements StartNodeCallable {
             
             ses = ssh.getSession(spec.username(), spec.host(), spec.port());
 
+            log.info(">>>>> spec.password()="+spec.password());
+            
             if (spec.password() != null)
                 ses.setPassword(spec.password());
 

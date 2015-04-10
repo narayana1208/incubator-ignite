@@ -245,10 +245,10 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
             for (String line; (line = reader.readLine()) != null;)
                 st += line + '\n';
 
-            log.info(">>>>> File content:\n" + st + "\nEND_OF_FILE.");
+            log.info(">>>>> File '" + fName + "' content:\n" + st + "\nEND_OF_FILE.");
         }
         catch (Throwable e) {
-            log.error(">>>>> Error:", e);
+            log.error(">>>>> file=" + fName, e);
         }
     }
 

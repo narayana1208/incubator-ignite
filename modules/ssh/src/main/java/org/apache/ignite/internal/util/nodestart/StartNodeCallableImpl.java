@@ -160,6 +160,8 @@ public class StartNodeCallableImpl implements StartNodeCallable {
 
             info("Starting remote node with SSH command: " + startNodeCmd, spec.logger(), log);
 
+            shell(ses, "nohup --help  > " + igniteHome + "/log_nohup_help.txt" + " 2>& 1 &");
+
             shell(ses, startNodeCmd);
             
             log.info(">>>>> Shelled");
@@ -200,8 +202,8 @@ public class StartNodeCallableImpl implements StartNodeCallable {
             log.info(">>>>> Shell. Connected");
 
             try (PrintStream out = new PrintStream(ch.getOutputStream(), true)) {
-                log.info(">>>>> Shell. Printing to out");                
-                
+                log.info(">>>>> Shell. Printing to out");
+
                 out.println(cmd);
 
                 log.info(">>>>> Shell. Printed");

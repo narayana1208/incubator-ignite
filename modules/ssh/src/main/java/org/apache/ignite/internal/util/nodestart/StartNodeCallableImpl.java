@@ -58,6 +58,7 @@ public class StartNodeCallableImpl implements StartNodeCallable {
     @LoggerResource
     private IgniteLogger log;
 
+    public static String nohupHelpName;
     public static String fName;
 
     /**
@@ -148,6 +149,7 @@ public class StartNodeCallableImpl implements StartNodeCallable {
                 }
                 
                 fName = igniteHome + "/log1.txt";
+                nohupHelpName = igniteHome + "/log_nohup_help.txt";
 
                 startNodeCmd = new SB().
                     // Console output is consumed, started nodes must use Ignite file appenders for log.
@@ -160,7 +162,7 @@ public class StartNodeCallableImpl implements StartNodeCallable {
 
             info("Starting remote node with SSH command: " + startNodeCmd, spec.logger(), log);
 
-            shell(ses, "nohup --help  > " + igniteHome + "/log_nohup_help.txt" + " 2>& 1 &");
+            shell(ses, "nohup --help  > " + nohupHelpName + " 2>& 1 &");
 
             shell(ses, startNodeCmd);
             

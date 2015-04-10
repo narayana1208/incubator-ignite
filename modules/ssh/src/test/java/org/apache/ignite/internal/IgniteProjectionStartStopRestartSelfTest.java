@@ -195,7 +195,19 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
 
         joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
 
-        log.info(">>>>> File name=" + StartNodeCallableImpl.fName);
+        printFile(StartNodeCallableImpl.nohupHelpName);
+        printFile(StartNodeCallableImpl.fName);
+
+        assert joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
+
+        assert joinedCnt.get() == 1;
+        assert leftCnt.get() == 0;
+
+        assert ignite.cluster().nodes().size() == 1;
+    }
+
+    private void printFile(String fName) {
+        log.info(">>>>> File name=" + fName);
 
         try {
             BufferedReader reader = new BufferedReader(new FileReader(StartNodeCallableImpl.fName));
@@ -210,13 +222,6 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
         catch (Throwable e) {
             log.error(">>>>> Error:", e);
         }
-
-        assert joinedLatch.await(WAIT_TIMEOUT, MILLISECONDS);
-
-        assert joinedCnt.get() == 1;
-        assert leftCnt.get() == 0;
-
-        assert ignite.cluster().nodes().size() == 1;
     }
 
     /**

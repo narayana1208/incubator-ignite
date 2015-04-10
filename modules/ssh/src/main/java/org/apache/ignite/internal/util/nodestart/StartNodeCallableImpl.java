@@ -97,6 +97,8 @@ public class StartNodeCallableImpl implements StartNodeCallable {
             if (spec.key() != null)
                 ssh.addIdentity(spec.key().getAbsolutePath());
 
+            log.info(">>>>> spec.username()=" + spec.username()  +" , spec.host()=" +spec.host()+" , spec.port()="+spec.port());
+            
             ses = ssh.getSession(spec.username(), spec.host(), spec.port());
 
             if (spec.password() != null)
@@ -105,6 +107,10 @@ public class StartNodeCallableImpl implements StartNodeCallable {
             ses.setConfig("StrictHostKeyChecking", "no");
 
             ses.connect(timeout);
+            
+            log.info(">>>>> timeout=" + timeout);
+            
+            log.info(">>>>> ses.isConnected()" + ses.isConnected());
 
             boolean win = isWindows(ses);
 
@@ -145,8 +151,8 @@ public class StartNodeCallableImpl implements StartNodeCallable {
                 fileNameMkdir1 = igniteHome + "/log_mkdir1.txt";
                 fileNameMkdir2 = igniteHome + "/log_mkdir2.txt";
 
-                shell(ses, "mkdir " + scriptOutputDir + " > " +  fileNameMkdir1 + " 2>& 1 &");
-                shell(ses, "mkdir " + scriptOutputDir + " > " +  fileNameMkdir2 + " 2>& 1 &");
+                shell(ses, "mkdir " + scriptOutputDir + " > " +  fileNameMkdir1 + " 2>& 1 &", log);
+                shell(ses, "mkdir " + scriptOutputDir + " > " +  fileNameMkdir2 + " 2>& 1 &", log);
 
                 // Mac os don't support ~ in double quotes. Trying get home path from remote system.
                 if (igniteHome.startsWith("~")) {
@@ -170,11 +176,11 @@ public class StartNodeCallableImpl implements StartNodeCallable {
 
             info("Starting remote node with SSH command: " + startNodeCmd, spec.logger(), log);
 
-            shell(ses, "ls  > " + fileNameLs + " 2>& 1 &");
+            shell(ses, "ls  > " + fileNameLs + " 2>& 1 &", log);
             
-            shell(ses, "nohup --help  > " + fileNameNohupHelp + " 2>& 1 &");
+            shell(ses, "nohup --help  > " + fileNameNohupHelp + " 2>& 1 &", log);
 
-            shell(ses, startNodeCmd);
+            shell(ses, startNodeCmd, log);
             
             log.info(">>>>> Shelled");
 
@@ -197,11 +203,12 @@ public class StartNodeCallableImpl implements StartNodeCallable {
      *
      * @param ses SSH session.
      * @param cmd Command.
+     * @param log
      * @throws JSchException In case of SSH error.
      * @throws IOException If IO error occurs.
      * @throws IgniteInterruptedCheckedException If thread was interrupted while waiting.
      */
-    private void shell(Session ses, String cmd) throws JSchException, IOException, IgniteInterruptedCheckedException {
+    public static void shell(Session ses, String cmd, IgniteLogger log) throws JSchException, IOException, IgniteInterruptedCheckedException {
         ChannelShell ch = null;
         
         log.info(">>>>> Shell. ses=" + ses + ", cmd=" + cmd);
@@ -211,7 +218,7 @@ public class StartNodeCallableImpl implements StartNodeCallable {
 
             ch.connect();
 
-            log.info(">>>>> Shell. Connected");
+            log.info(">>>>> Shell. Connected. ch.isConnect()=" + ch.isConnected());
 
             try (PrintStream out = new PrintStream(ch.getOutputStream(), true)) {
                 log.info(">>>>> Shell. Printing to out");
@@ -225,7 +232,7 @@ public class StartNodeCallableImpl implements StartNodeCallable {
         }
         finally {
             if (ch != null && ch.isConnected()) {
-                log.info(">>>>> Shell. Disconnecting");                
+                log.info(">>>>> Shell. Disconnecting");
                 
                 ch.disconnect();
 

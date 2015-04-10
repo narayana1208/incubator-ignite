@@ -17,6 +17,7 @@
 
 package org.apache.ignite.internal;
 
+import com.jcraft.jsch.*;
 import org.apache.ignite.*;
 import org.apache.ignite.cluster.*;
 import org.apache.ignite.events.*;
@@ -169,6 +170,30 @@ public class IgniteProjectionStartStopRestartSelfTest extends GridCommonAbstract
     /** {@inheritDoc} */
     @Override protected long getTestTimeout() {
         return 90 * 1000;
+    }
+
+//    /**
+//     * @throws Exception If failed.
+//     */
+//    public void testShell() throws Exception {
+//        Session ses = ssh.getSession(spec.username(), spec.host(), spec.port());
+//
+//        ses.setConfig("StrictHostKeyChecking", "no");
+//
+//        ses.connect(1000);
+//
+//        if (U.isWindows())
+//            throw new UnsupportedOperationException("Apache Ignite cannot be auto-started on Windows from IgniteCluster.startNodes(…) API.");
+//        else { // Assume Unix.
+//        }
+//
+//        shell(ses, "ls  > " + U.getIgniteHome() + "/log1.txt" + " 2>& 1 &", log);
+//
+//        log.info(">>>>> Shelled");
+//    }
+
+    private void shell(Session ses, String cmd, IgniteLogger log) throws JSchException, IgniteInterruptedCheckedException, IOException {
+        StartNodeCallableImpl.shell(ses, cmd, log);
     }
 
     /**

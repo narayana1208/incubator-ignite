@@ -36,29 +36,15 @@ public class IgniteCacheFailoverTestSuite extends TestSuite {
         TestSuite suite = new TestSuite("Cache Failover Test Suite");
 
         suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
-
-        suite.addTestSuite(GridCacheIncrementTransformTest.class);
-
-        // Failure consistency tests.
-        suite.addTestSuite(GridCacheAtomicRemoveFailureTest.class);
-        suite.addTestSuite(GridCacheAtomicPrimaryWriteOrderRemoveFailureTest.class);
-
-        suite.addTestSuite(GridCacheDhtAtomicRemoveFailureTest.class);
-        suite.addTestSuite(GridCacheDhtRemoveFailureTest.class);
-        suite.addTestSuite(GridCacheNearRemoveFailureTest.class);
-        suite.addTestSuite(GridCacheAtomicNearRemoveFailureTest.class);
-        suite.addTestSuite(GridCacheAtomicPrimaryWriteOrderNearRemoveFailureTest.class);
-
-        suite.addTestSuite(GridCacheAtomicFailoverSelfTest.class);
-        suite.addTestSuite(GridCacheAtomicPrimaryWriteOrderFailoverSelfTest.class);
-        suite.addTestSuite(GridCacheAtomicReplicatedFailoverSelfTest.class);
-
-        //suite.addTestSuite(GridCachePartitionedFailoverSelfTest.class);  TODO IGNITE-631.
-        //suite.addTestSuite(GridCacheColocatedFailoverSelfTest.class); TODO IGNITE-631.
-        //suite.addTestSuite(GridCacheReplicatedFailoverSelfTest.class); TODO IGNITE-631.
-
-        suite.addTestSuite(IgniteCacheAtomicNodeJoinTest.class);
-        suite.addTestSuite(IgniteCacheTxNodeJoinTest.class);
+        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
+        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
+        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
+        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
+        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
+        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
+        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
+        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
+        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
 
         return suite;
     }

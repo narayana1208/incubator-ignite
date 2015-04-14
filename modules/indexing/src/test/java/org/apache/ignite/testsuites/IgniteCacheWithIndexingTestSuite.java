@@ -36,6 +36,7 @@ public class IgniteCacheWithIndexingTestSuite extends TestSuite {
         suite.addTestSuite(GridIndexingWithNoopSwapSelfTest.class);
         suite.addTestSuite(GridCacheSwapSelfTest.class);
         suite.addTestSuite(GridCacheOffHeapSelfTest.class);
+        suite.addTestSuite(GridCachePutCharacterSelfTest.class);
 
         suite.addTestSuite(CacheTtlOffheapAtomicLocalSelfTest.class);
         suite.addTestSuite(CacheTtlOffheapAtomicPartitionedSelfTest.class);

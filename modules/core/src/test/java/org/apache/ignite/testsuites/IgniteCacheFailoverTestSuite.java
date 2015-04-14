@@ -40,11 +40,6 @@ public class IgniteCacheFailoverTestSuite extends TestSuite {
         suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
         suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
         suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
-        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
-        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
-        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
-        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
-        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
 
         return suite;
     }

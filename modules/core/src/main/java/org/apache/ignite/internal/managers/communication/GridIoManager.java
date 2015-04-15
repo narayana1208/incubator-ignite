@@ -1486,8 +1486,8 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
     private void closeListener(GridMessageListener lsnr) {
         if (lsnr instanceof GridUserMessageListener) {
             GridUserMessageListener userLsnr = (GridUserMessageListener)lsnr;
-            if (userLsnr.predLsnr instanceof GridMessageCloseableFilter)
-                ((GridMessageCloseableFilter)userLsnr.predLsnr).onClose();
+            if (userLsnr.predLsnr instanceof GridCloseableMessageFilter)
+                ((GridCloseableMessageFilter)userLsnr.predLsnr).onClose();
         }
     }
 

@@ -22,7 +22,7 @@ import org.apache.ignite.lang.*;
 /**
  * Special version of bi-predicate for messaging with close callback.
  */
-public interface GridMessageCloseableFilter<K, V> extends IgniteBiPredicate<K, V> {
+public interface GridCloseableMessageFilter<K, V> extends IgniteBiPredicate<K, V> {
     /**
      * Callback invoked when predicate is no longer needed.
      */

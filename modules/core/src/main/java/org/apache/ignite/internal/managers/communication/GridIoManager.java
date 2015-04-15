@@ -1383,7 +1383,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
      * @return Whether or not the lsnr was removed.
      */
     @SuppressWarnings({"deprecation", "SynchronizationOnLocalVariableOrMethodParameter"})
-    public boolean removeMessageListener(Object topic, @Nullable final GridMessageListener lsnr) {
+    public boolean removeMessageListener(Object topic, @Nullable GridMessageListener lsnr) {
         assert topic != null;
 
         boolean rmv = true;
@@ -1394,7 +1394,8 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
         if (lsnr == null) {
             closedTopics.add(topic);
 
-            rmv = lsnrMap.remove(topic) != null;
+            lsnr = lsnrMap.remove(topic);
+            rmv = lsnr != null;
 
             Map<UUID, GridCommunicationMessageSet> map = msgSetMap.remove(topic);
 
@@ -1466,7 +1467,28 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
         if (rmv && log.isDebugEnabled())
             log.debug("Removed message listener [topic=" + topic + ", lsnr=" + lsnr + ']');
 
+        if (lsnr instanceof ArrayListener)
+        {
+            for (GridMessageListener childLsnr : ((ArrayListener)lsnr).arr) {
+                closeListener(childLsnr);
+            }
+        }
+        else
+            closeListener(lsnr);
+
         return rmv;
+    }
+
+    /**
+     * Closes a listener, if applicable.
+     * @param lsnr Listener.
+     */
+    private void closeListener(GridMessageListener lsnr) {
+        if (lsnr instanceof GridUserMessageListener) {
+            GridUserMessageListener userLsnr = (GridUserMessageListener)lsnr;
+            if (userLsnr.predLsnr instanceof GridMessageCloseableFilter)
+                ((GridMessageCloseableFilter)userLsnr.predLsnr).onClose();
+        }
     }
 
     /**

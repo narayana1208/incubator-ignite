@@ -240,21 +240,25 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
 
     /** {@inheritDoc} */
     @Override public boolean onNodeLeft(UUID nodeId) {
-        for (Object o : keys) {
-            Object key0;
+//        for (Object o : keys) {
+//            Object key0;
+//
+//            if (o instanceof KeyCacheObject)
+//                key0 = ((KeyCacheObject) o).value(cctx.cacheObjectContext(), false);
+//            else
+//                key0 = o;
+//
+//            TestDebugLog.addEntryMessage(key0, null, "nodeLeft");
+//        }
 
-            if (o instanceof KeyCacheObject)
-                key0 = ((KeyCacheObject) o).value(cctx.cacheObjectContext(), false);
-            else
-                key0 = o;
-
-            TestDebugLog.addEntryMessage(key0, null, "nodeLeft");
-        }
+        TestDebugLog.addEntryMessage(version(), null, "nodeLeft " + nodeId);
 
         Boolean single0 = single;
 
         if (single0 != null && single0) {
             if (singleNodeId.equals(nodeId)) {
+                TestDebugLog.addEntryMessage(version(), null, "node left single " + nodeId);
+
                 onDone(addFailedKeys(
                     singleReq.keys(),
                     new ClusterTopologyCheckedException("Primary node left grid before response is received: " + nodeId)));
@@ -271,6 +275,8 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
             addFailedKeys(req.keys(), new ClusterTopologyCheckedException("Primary node left grid before response is " +
                 "received: " + nodeId));
 
+            TestDebugLog.addEntryMessage(version(), null, "node left remove mapping " + nodeId);
+
             mappings.remove(nodeId);
 
             checkComplete();
@@ -285,9 +291,16 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
     @Override public void checkTimeout(long timeout) {
         long mapTime0 = mapTime;
 
-        if (mapTime0 > 0 && U.currentTimeMillis() > mapTime0 + timeout)
+        if (mapTime0 > 0 && U.currentTimeMillis() > mapTime0 + timeout) {
+            TestDebugLog.addEntryMessage(version(), null, "timeout: " + timeout);
+
+            TestDebugLog.printKeyMessages(false, version());
+
+            System.exit(33);
+
             onDone(new CacheAtomicUpdateTimeoutCheckedException("Cache update timeout out " +
                 "(consider increasing networkTimeout configuration property)."));
+        }
     }
 
     /** {@inheritDoc} */
@@ -340,16 +353,7 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
      */
     public void onResult(UUID nodeId, GridNearAtomicUpdateResponse res) {
         if (res.remapKeys() != null) {
-            for (Object o : res.remapKeys()) {
-                Object key0;
-
-                if (o instanceof KeyCacheObject)
-                    key0 = ((KeyCacheObject) o).value(cctx.cacheObjectContext(), false);
-                else
-                    key0 = o;
-
-                TestDebugLog.addEntryMessage(key0, null, "remap");
-            }
+            TestDebugLog.addEntryMessage(version(), null, "remap");
 
             assert cctx.config().getAtomicWriteOrderMode() == PRIMARY;
 
@@ -363,16 +367,7 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
         Boolean single0 = single;
 
         if (single0 != null && single0) {
-            for (Object o : keys) {
-                Object key0;
-
-                if (o instanceof KeyCacheObject)
-                    key0 = ((KeyCacheObject) o).value(cctx.cacheObjectContext(), false);
-                else
-                    key0 = o;
-
-                TestDebugLog.addEntryMessage(key0, null, "single response");
-            }
+            TestDebugLog.addEntryMessage(version(), null, "single response " + nodeId);
 
             assert singleNodeId.equals(nodeId) : "Invalid response received for single-node mapped future " +
                 "[singleNodeId=" + singleNodeId + ", nodeId=" + nodeId + ", res=" + res + ']';
@@ -398,16 +393,7 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
         else {
             GridNearAtomicUpdateRequest req = mappings.get(nodeId);
 
-            for (Object o : keys) {
-                Object key0;
-
-                if (o instanceof KeyCacheObject)
-                    key0 = ((KeyCacheObject) o).value(cctx.cacheObjectContext(), false);
-                else
-                    key0 = o;
-
-                TestDebugLog.addEntryMessage(key0, null, "response");
-            }
+            TestDebugLog.addEntryMessage(version(), null, "response " + nodeId);
 
             if (req != null) { // req can be null if onResult is being processed concurrently with onNodeLeft.
                 updateNear(req, res);
@@ -516,6 +502,8 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
             else
                 onDone(opRes);
         }
+        else
+            TestDebugLog.addEntryMessage(version(), null, "check complete: " + mappings.keySet());
     }
 
     /**
@@ -640,16 +628,7 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
 
             single = true;
 
-            for (Object o : keys) {
-                Object key0;
-
-                if (o instanceof KeyCacheObject)
-                    key0 = ((KeyCacheObject) o).value(cctx.cacheObjectContext(), false);
-                else
-                    key0 = o;
-
-                TestDebugLog.addEntryMessage(key0, null, "mapSingle0");
-            }
+            TestDebugLog.addEntryMessage(version(), null, "mapSingle0 " + primary.id());
 
             // Optimize mapping for single key.
             mapSingle(primary.id(), req);
@@ -766,6 +745,8 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
 
                         pendingMappings.put(nodeId, mapped);
 
+                        TestDebugLog.addEntryMessage(version(), null, "add mapping " + nodeId);
+
                         GridNearAtomicUpdateRequest old = mappings.put(nodeId, mapped);
 
                         assert old == null || (old != null && remap) :
@@ -784,16 +765,7 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
 
             single = true;
 
-            for (Object o : keys) {
-                Object key0;
-
-                if (o instanceof KeyCacheObject)
-                    key0 = ((KeyCacheObject) o).value(cctx.cacheObjectContext(), false);
-                else
-                    key0 = o;
-
-                TestDebugLog.addEntryMessage(key0, null, "mapSingle1");
-            }
+            TestDebugLog.addEntryMessage(version(), null, "mapSingle1");
 
             mapSingle(entry.getKey(), entry.getValue());
 
@@ -882,36 +854,20 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
 
                 locUpdate = req;
 
-                for (Object o : req.keys()) {
-                    Object key0;
-
-                    if (o instanceof KeyCacheObject)
-                        key0 = ((KeyCacheObject) o).value(cctx.cacheObjectContext(), false);
-                    else
-                        key0 = o;
-
-                    TestDebugLog.addEntryMessage(key0, null, "localUpdate");
-                }
+                TestDebugLog.addEntryMessage(version(), null, "local update");
             }
             else {
                 try {
                     if (log.isDebugEnabled())
                         log.debug("Sending near atomic update request [nodeId=" + req.nodeId() + ", req=" + req + ']');
 
-                    for (Object o : req.keys()) {
-                        Object key0;
-
-                        if (o instanceof KeyCacheObject)
-                            key0 = ((KeyCacheObject) o).value(cctx.cacheObjectContext(), false);
-                        else
-                            key0 = o;
-
-                        TestDebugLog.addEntryMessage(key0, null, "remoteUpdate");
-                    }
+                    TestDebugLog.addEntryMessage(version(), null, "remote update " + req.nodeId());
 
                     cctx.io().send(req.nodeId(), req, cctx.ioPolicy());
                 }
                 catch (IgniteCheckedException e) {
+                    TestDebugLog.addEntryMessage(version(), null, "send failed " + req.nodeId());
+
                     addFailedKeys(req.keys(), e);
 
                     removeMapping(req.nodeId());
@@ -947,6 +903,8 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
      * @param nodeId Node ID to remove mapping for.
      */
     private void removeMapping(UUID nodeId) {
+        TestDebugLog.addEntryMessage(version(), null, "remove mapping " + nodeId);
+
         mappings.remove(nodeId);
     }
 

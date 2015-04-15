@@ -309,66 +309,41 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
                 @Override public Object call() throws Exception {
                     Random rnd = new Random();
 
-                    try {
-                        while (!done.get()) {
-                            int cnt = rnd.nextInt(5);
+                    while (!done.get()) {
+                        try {
+                            Map<Integer, Integer> upd = new TreeMap<>();
 
-                            boolean put = cnt < 2;
+                            for (int i = 0; i < 100; i++)
+                                upd.put(rnd.nextInt(range), rnd.nextInt());
 
-                            Map<Integer, Integer> upd = null;
-
-                            int key = 0;
-
-                            if (put) {
-                                key = rnd.nextInt(range);
-
-                                int val = rnd.nextInt();
-
-                                TestDebugLog.addEntryMessage(key, val, "put");
-
-                                cache.put(key, val);
-                            }
-                            else {
-                                upd = new TreeMap<>();
-
-                                for (int i = 0; i < cnt; i++) {
-                                    key = rnd.nextInt(range);
-                                    int val = rnd.nextInt();
-
-                                    upd.put(key, val);
-
-                                    TestDebugLog.addEntryMessage(key, val, "putAll");
-                                }
-
-                                cache.putAll(upd);
-                            }
+                            cache.putAll(upd);
                         }
-                    }
-                    catch (CachePartialUpdateException e) {
+                        catch (CachePartialUpdateException e) {
 
-                    }
-                    catch (CacheAtomicUpdateTimeoutException e) {
-                        e.printStackTrace();
-
-                        TestDebugLog.addMessage("atomic update timeout");
-
-                        TestDebugLog.printMessages(false);
-
-                        System.exit(22);
-
-                    }
-                    catch (Exception e) {
-                        if (X.hasCause(e, CacheAtomicUpdateTimeoutCheckedException.class)) {
+                        }
+                        catch (CacheAtomicUpdateTimeoutException e) {
                             e.printStackTrace();
 
-                            TestDebugLog.addMessage("atomic update timeout2");
+                            TestDebugLog.addMessage("atomic update timeout");
 
                             TestDebugLog.printMessages(false);
 
                             System.exit(22);
-                        }
 
-                        throw e;
+                        }
+                        catch (Exception e) {
+                            if (X.hasCause(e, CacheAtomicUpdateTimeoutCheckedException.class)) {
+                                e.printStackTrace();
+
+                                TestDebugLog.addMessage("atomic update timeout2");
+
+                                TestDebugLog.printMessages(false);
+
+                                System.exit(22);
+                            }
+
+                            throw e;
+                        }
                     }
 
                     return null;
@@ -381,7 +356,7 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
             for (int r = 0; r < 40 && !fut.isDone(); r++) {
                 int idx0 = rnd.nextInt(gridCnt - 1) + 1;
 
-                TestDebugLog.addMessage("stop grid " + idx0);
+                TestDebugLog.addMessage("stop grid " + ignite(idx0).cluster().localNode().id());
 
                 stopGrid(idx0);
 

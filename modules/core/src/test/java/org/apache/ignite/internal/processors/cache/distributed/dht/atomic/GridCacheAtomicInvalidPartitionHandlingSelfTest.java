@@ -134,7 +134,7 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
     /**
      * @throws Exception If failed.
      */
-    public void _testClockFullAsync() throws Exception {
+    public void testClockFullAsync() throws Exception {
         checkRestarts(CLOCK, FULL_ASYNC);
     }
 
@@ -155,7 +155,7 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
     /**
      * @throws Exception If failed.
      */
-    public void _testPrimaryFullAsync() throws Exception {
+    public void testPrimaryFullAsync() throws Exception {
         checkRestarts(PRIMARY, FULL_ASYNC);
     }
 

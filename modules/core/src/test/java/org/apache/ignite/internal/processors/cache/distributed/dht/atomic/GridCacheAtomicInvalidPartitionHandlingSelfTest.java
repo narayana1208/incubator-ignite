@@ -28,6 +28,7 @@ import org.apache.ignite.internal.processors.cache.*;
 import org.apache.ignite.internal.processors.cache.version.*;
 import org.apache.ignite.internal.util.lang.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
+import org.apache.ignite.lang.*;
 import org.apache.ignite.plugin.extensions.communication.*;
 import org.apache.ignite.spi.*;
 import org.apache.ignite.spi.communication.tcp.*;
@@ -101,6 +102,8 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
         super.beforeTest();
 
         delay = false;
+
+        TestDebugLog.clear();
     }
 
     /** {@inheritDoc} */
@@ -125,7 +128,7 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
     /**
      * @throws Exception If failed.
      */
-    public void testClockFullAsync() throws Exception {
+    public void _testClockFullAsync() throws Exception {
         checkRestarts(CLOCK, FULL_ASYNC);
     }
 
@@ -146,7 +149,7 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
     /**
      * @throws Exception If failed.
      */
-    public void testPrimaryFullAsync() throws Exception {
+    public void _testPrimaryFullAsync() throws Exception {
         checkRestarts(PRIMARY, FULL_ASYNC);
     }
 
@@ -169,17 +172,21 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
         try {
             final IgniteCache<Object, Object> cache = grid(0).cache(null);
 
+            final IgniteCache<Object, Object> asyncCache = cache.withAsync();
+
             final int range = 100_000;
 
             final Set<Integer> keys = new LinkedHashSet<>();
 
-            for (int i = 0; i < range; i++) {
-                cache.put(i, 0);
+            try (IgniteDataStreamer<Object, Object> streamer = grid(0).dataStreamer(null)) {
+                for (int i = 0; i < range; i++) {
+                    streamer.addData(i, 0);
 
-                keys.add(i);
+                    keys.add(i);
 
-                if (i > 0 && i % 10_000 == 0)
-                    System.err.println("Put: " + i);
+                    if (i > 0 && i % 10_000 == 0)
+                        System.err.println("Put: " + i);
+                }
             }
 
             final Affinity<Integer> aff = grid(0).affinity(null);
@@ -230,38 +237,61 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
                     Random rnd = new Random();
 
                     while (!done.get()) {
-                        try {
-                            int cnt = rnd.nextInt(5);
+                        int cnt = rnd.nextInt(5);
 
-                            if (cnt < 2) {
+                        boolean put = cnt < 2;
+
+                        if (put) {
+                            int key = rnd.nextInt(range);
+
+                            int val = rnd.nextInt();
+
+                            TestDebugLog.addEntryMessage(key, val, "put");
+
+                            asyncCache.put(key, val);
+                        }
+                        else {
+                            Map<Integer, Integer> upd = new TreeMap<>();
+
+                            for (int i = 0; i < cnt; i++) {
                                 int key = rnd.nextInt(range);
-
                                 int val = rnd.nextInt();
 
-                                cache.put(key, val);
-                            }
-                            else {
-                                Map<Integer, Integer> upd = new TreeMap<>();
+                                upd.put(key, val);
 
-                                for (int i = 0; i < cnt; i++)
-                                    upd.put(rnd.nextInt(range), rnd.nextInt());
-
-                                cache.putAll(upd);
+                                TestDebugLog.addEntryMessage(key, val, "putAll");
                             }
+
+                            asyncCache.putAll(upd);
+                        }
+
+                        try {
+                            asyncCache.future().get(30_000);
+                        }
+                        catch (IgniteFutureTimeoutException e) {
+                            TestDebugLog.addMessage("update timeout, put: " + put);
+
+                            TestDebugLog.printMessages(false);
+
+                            System.exit(22);
                         }
                         catch (CachePartialUpdateException ignored) {
                             // No-op.
+                        }
+                        catch (IgniteException e) {
+                            if (!e.hasCause(CachePartialUpdateCheckedException.class))
+                                throw e;
                         }
                     }
 
                     return null;
                 }
-            }, 4);
+            }, 1, "update-thread");
 
             Random rnd = new Random();
 
             // Restart random nodes.
-            for (int r = 0; r < 20; r++) {
+            for (int r = 0; r < 20 && !fut.isDone(); r++) {
                 int idx0 = rnd.nextInt(gridCnt - 1) + 1;
 
                 stopGrid(idx0);

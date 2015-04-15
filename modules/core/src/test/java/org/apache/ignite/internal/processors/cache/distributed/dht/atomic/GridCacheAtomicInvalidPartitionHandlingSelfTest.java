@@ -97,6 +97,11 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
         return ccfg;
     }
 
+    @Override
+    protected long getTestTimeout() {
+        return 2 * super.getTestTimeout();
+    }
+
     /** {@inheritDoc} */
     @Override protected void beforeTest() throws Exception {
         super.beforeTest();
@@ -239,10 +244,16 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
                     while (!done.get()) {
                         int cnt = rnd.nextInt(5);
 
+                        TestDebugLog.clear();
+
                         boolean put = cnt < 2;
 
+                        Map<Integer, Integer> upd = null;
+
+                        int key = 0;
+
                         if (put) {
-                            int key = rnd.nextInt(range);
+                            key = rnd.nextInt(range);
 
                             int val = rnd.nextInt();
 
@@ -251,10 +262,10 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
                             asyncCache.put(key, val);
                         }
                         else {
-                            Map<Integer, Integer> upd = new TreeMap<>();
+                            upd = new TreeMap<>();
 
                             for (int i = 0; i < cnt; i++) {
-                                int key = rnd.nextInt(range);
+                                key = rnd.nextInt(range);
                                 int val = rnd.nextInt();
 
                                 upd.put(key, val);
@@ -270,6 +281,15 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
                         }
                         catch (IgniteFutureTimeoutException e) {
                             TestDebugLog.addMessage("update timeout, put: " + put);
+
+                            /*
+                            if (upd != null) {
+                                for (Object key0 : upd.keySet())
+                                    TestDebugLog.printKeyMessages(false, key0);
+                            }
+                            else
+                                TestDebugLog.printKeyMessages(false, key);
+                                */
 
                             TestDebugLog.printMessages(false);
 
@@ -291,12 +311,16 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
             Random rnd = new Random();
 
             // Restart random nodes.
-            for (int r = 0; r < 20 && !fut.isDone(); r++) {
+            for (int r = 0; r < 40 && !fut.isDone(); r++) {
                 int idx0 = rnd.nextInt(gridCnt - 1) + 1;
+
+                TestDebugLog.addMessage("stop grid " + idx0);
 
                 stopGrid(idx0);
 
                 U.sleep(200);
+
+                TestDebugLog.addMessage("start grid " + idx0);
 
                 startGrid(idx0);
             }
@@ -344,9 +368,14 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
                                 else {
                                     assertNotNull(ver);
 
-                                    assertEquals("Failed to check value for key [key=" + k + ", node=" +
-                                        locNode.id() + ", primary=" + primary + ", recNodeId=" + nodeId + ']',
-                                        val, CU.value(entry.rawGetOrUnmarshal(false), entry.context(), false));
+                                    assertEquals("Failed to check value for key [key=" + k +
+                                        ", node=" +
+                                        locNode.id() +
+                                        ", primary=" + primary +
+                                        ", recNodeId=" + nodeId + ']',
+                                        val,
+                                        CU.value(entry.rawGetOrUnmarshal(false), entry.context(), false));
+
                                     assertEquals(ver, entry.version());
                                 }
                             }

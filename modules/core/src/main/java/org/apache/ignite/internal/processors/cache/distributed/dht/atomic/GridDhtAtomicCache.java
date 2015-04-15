@@ -224,12 +224,16 @@ public class GridDhtAtomicCache<K, V> extends GridDhtCacheAdapter<K, V> {
                 }
             });
         }
+
+        ctx.io().addDisconnectListener(disconnectLsnr);
     }
 
     /** {@inheritDoc} */
     @Override public void stop() {
         for (DeferredResponseBuffer buf : pendingResponses.values())
             buf.finish();
+
+        ctx.io().removeDisconnectListener(disconnectLsnr);
     }
 
     /**

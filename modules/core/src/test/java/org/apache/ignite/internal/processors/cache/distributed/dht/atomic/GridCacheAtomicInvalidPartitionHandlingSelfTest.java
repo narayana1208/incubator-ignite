@@ -299,6 +299,23 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
                             // No-op.
                         }
                         catch (IgniteException e) {
+                            if (e.hasCause(CacheAtomicUpdateTimeoutCheckedException.class)) {
+                                TestDebugLog.addMessage("atomic update timeout, put: " + put);
+
+                            /*
+                            if (upd != null) {
+                                for (Object key0 : upd.keySet())
+                                    TestDebugLog.printKeyMessages(false, key0);
+                            }
+                            else
+                                TestDebugLog.printKeyMessages(false, key);
+                                */
+
+                                TestDebugLog.printMessages(false);
+
+                                System.exit(22);
+                            }
+
                             if (!e.hasCause(CachePartialUpdateCheckedException.class))
                                 throw e;
                         }

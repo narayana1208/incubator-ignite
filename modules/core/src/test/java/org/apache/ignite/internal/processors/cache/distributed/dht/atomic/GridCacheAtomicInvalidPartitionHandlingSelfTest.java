@@ -27,6 +27,7 @@ import org.apache.ignite.internal.managers.communication.*;
 import org.apache.ignite.internal.processors.cache.*;
 import org.apache.ignite.internal.processors.cache.version.*;
 import org.apache.ignite.internal.util.lang.*;
+import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
 import org.apache.ignite.plugin.extensions.communication.*;
@@ -237,93 +238,142 @@ public class GridCacheAtomicInvalidPartitionHandlingSelfTest extends GridCommonA
             System.err.println("FINISHED PUTS");
 
             // Start put threads.
+//            IgniteInternalFuture<?> fut = multithreadedAsync(new Callable<Object>() {
+//                @Override public Object call() throws Exception {
+//                    Random rnd = new Random();
+//
+//                    while (!done.get()) {
+//                        int cnt = rnd.nextInt(5);
+//
+//                        boolean put = cnt < 2;
+//
+//                        Map<Integer, Integer> upd = null;
+//
+//                        int key = 0;
+//
+//                        if (put) {
+//                            key = rnd.nextInt(range);
+//
+//                            int val = rnd.nextInt();
+//
+//                            TestDebugLog.addEntryMessage(key, val, "put");
+//
+//                            asyncCache.put(key, val);
+//                        }
+//                        else {
+//                            upd = new TreeMap<>();
+//
+//                            for (int i = 0; i < cnt; i++) {
+//                                key = rnd.nextInt(range);
+//                                int val = rnd.nextInt();
+//
+//                                upd.put(key, val);
+//
+//                                TestDebugLog.addEntryMessage(key, val, "putAll");
+//                            }
+//
+//                            asyncCache.putAll(upd);
+//                        }
+//
+//                        try {
+//                            asyncCache.future().get(30_000);
+//                        }
+//                        catch (IgniteFutureTimeoutException e) {
+//                            TestDebugLog.addMessage("update timeout, put: " + put);
+//
+//                            TestDebugLog.printMessages(false);
+//
+//                            System.exit(22);
+//                        }
+//                        catch (CachePartialUpdateException ignored) {
+//                            // No-op.
+//                        }
+//                        catch (IgniteException e) {
+//                            if (e.hasCause(CacheAtomicUpdateTimeoutCheckedException.class)) {
+//                                TestDebugLog.addMessage("atomic update timeout, put: " + put);
+//
+//                                TestDebugLog.printMessages(false);
+//
+//                                System.exit(22);
+//                            }
+//
+//                            if (!e.hasCause(CachePartialUpdateCheckedException.class))
+//                                throw e;
+//                        }
+//                    }
+//
+//                    return null;
+//                }
+//            }, 4, "update-thread");
             IgniteInternalFuture<?> fut = multithreadedAsync(new Callable<Object>() {
                 @Override public Object call() throws Exception {
                     Random rnd = new Random();
 
-                    while (!done.get()) {
-                        int cnt = rnd.nextInt(5);
+                    try {
+                        while (!done.get()) {
+                            int cnt = rnd.nextInt(5);
 
-                        TestDebugLog.clear();
+                            boolean put = cnt < 2;
 
-                        boolean put = cnt < 2;
+                            Map<Integer, Integer> upd = null;
 
-                        Map<Integer, Integer> upd = null;
+                            int key = 0;
 
-                        int key = 0;
-
-                        if (put) {
-                            key = rnd.nextInt(range);
-
-                            int val = rnd.nextInt();
-
-                            TestDebugLog.addEntryMessage(key, val, "put");
-
-                            asyncCache.put(key, val);
-                        }
-                        else {
-                            upd = new TreeMap<>();
-
-                            for (int i = 0; i < cnt; i++) {
+                            if (put) {
                                 key = rnd.nextInt(range);
+
                                 int val = rnd.nextInt();
 
-                                upd.put(key, val);
+                                TestDebugLog.addEntryMessage(key, val, "put");
 
-                                TestDebugLog.addEntryMessage(key, val, "putAll");
+                                cache.put(key, val);
                             }
+                            else {
+                                upd = new TreeMap<>();
 
-                            asyncCache.putAll(upd);
-                        }
+                                for (int i = 0; i < cnt; i++) {
+                                    key = rnd.nextInt(range);
+                                    int val = rnd.nextInt();
 
-                        try {
-                            asyncCache.future().get(30_000);
-                        }
-                        catch (IgniteFutureTimeoutException e) {
-                            TestDebugLog.addMessage("update timeout, put: " + put);
+                                    upd.put(key, val);
 
-                            /*
-                            if (upd != null) {
-                                for (Object key0 : upd.keySet())
-                                    TestDebugLog.printKeyMessages(false, key0);
+                                    TestDebugLog.addEntryMessage(key, val, "putAll");
+                                }
+
+                                cache.putAll(upd);
                             }
-                            else
-                                TestDebugLog.printKeyMessages(false, key);
-                                */
+                        }
+                    }
+                    catch (CachePartialUpdateException e) {
+
+                    }
+                    catch (CacheAtomicUpdateTimeoutException e) {
+                        e.printStackTrace();
+
+                        TestDebugLog.addMessage("atomic update timeout");
+
+                        TestDebugLog.printMessages(false);
+
+                        System.exit(22);
+
+                    }
+                    catch (Exception e) {
+                        if (X.hasCause(e, CacheAtomicUpdateTimeoutCheckedException.class)) {
+                            e.printStackTrace();
+
+                            TestDebugLog.addMessage("atomic update timeout2");
 
                             TestDebugLog.printMessages(false);
 
                             System.exit(22);
                         }
-                        catch (CachePartialUpdateException ignored) {
-                            // No-op.
-                        }
-                        catch (IgniteException e) {
-                            if (e.hasCause(CacheAtomicUpdateTimeoutCheckedException.class)) {
-                                TestDebugLog.addMessage("atomic update timeout, put: " + put);
 
-                            /*
-                            if (upd != null) {
-                                for (Object key0 : upd.keySet())
-                                    TestDebugLog.printKeyMessages(false, key0);
-                            }
-                            else
-                                TestDebugLog.printKeyMessages(false, key);
-                                */
-
-                                TestDebugLog.printMessages(false);
-
-                                System.exit(22);
-                            }
-
-                            if (!e.hasCause(CachePartialUpdateCheckedException.class))
-                                throw e;
-                        }
+                        throw e;
                     }
 
                     return null;
                 }
-            }, 1, "update-thread");
+            }, 4, "update-thread");
 
             Random rnd = new Random();
 
